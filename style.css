@@ -154,23 +154,3 @@ h1 {
 .modal-content button[type="submit"]:hover {
     background-color: #0056b3;
 }
-
-.controls button {
-    padding: 10px 20px;
-    border: none;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-    border-radius: 4px;
-    margin-right: 5px;
-}
-
-.controls button:hover {
-    background-color: #0056b3;
-}
-
-.timetable-header {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-}
