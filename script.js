@@ -76,18 +76,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openModal() {
         lessonModal.style.display = 'block';
-        subjectInput.value = '';
-        locationInput.value = '';
-        instructorInput.value = '';
-        materialsInput.value = '';
-        isSubstituteSelect.value = 'normal';
     }
 
     function closeModal() {
         lessonModal.style.display = 'none';
     }
 
-    addLessonButton.addEventListener('click', openModal);
+    addLessonButton.addEventListener('click', () => {
+        modalTitle.textContent = '新しい授業を追加';
+        subjectInput.value = '';
+        locationInput.value = '';
+        instructorInput.value = '';
+        materialsInput.value = '';
+        isSubstituteSelect.value = 'normal';
+        openModal();
+    });
+
     closeBtn.addEventListener('click', closeModal);
     window.addEventListener('click', event => {
         if (event.target === lessonModal) {
