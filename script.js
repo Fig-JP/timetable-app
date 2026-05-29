@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const materialsInput = document.getElementById('materials');
     const isSubstituteSelect = document.getElementById('isSubstitute');
     const lessonForm = document.getElementById('lessonForm');
+    const modalTitle = document.getElementById('modal-title');
 
     let timetableData = {
         monday: { 1: {}, 2: {}, 3: {}, 4: {} },
@@ -125,6 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
             instructorInput.value = lessonData.instructor || '';
             materialsInput.value = lessonData.materials || '';
             isSubstituteSelect.value = lessonData.isSubstitute || 'normal';
+
+            // モーダルのタイトルを更新
+            modalTitle.textContent = `${getDayName(day)} ${period}コマ目`;
 
             openModal();
         }
