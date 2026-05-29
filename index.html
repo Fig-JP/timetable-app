@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時間割管理アプリ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+</head>
+<body>
+    <div class="container">
+        <h1>時間割管理アプリ</h1>
+        
+        <div class="week-toggle">
+            <button id="weekA">A週</button>
+            <button id="weekB">B週</button>
+        </div>
+        
+        <div class="timetable" id="timetable">
+            <!-- 時間割テーブルはJavaScriptで生成 -->
+        </div>
+        
+        <div class="controls">
+            <button id="addLesson">授業を追加</button>
+            <button id="saveData">データを保存</button>
+        </div>
+        
+        <div id="lessonModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>授業情報</h2>
+                <form id="lessonForm">
+                    <input type="hidden" id="lessonId">
+                    <label for="day">曜日:</label>
+                    <select id="day" required>
+                        <option value="monday">月曜日</option>
+                        <option value="tuesday">火曜日</option>
+                        <option value="wednesday">水曜日</option>
+                        <option value="thursday">木曜日</option>
+                        <option value="friday">金曜日</option>
+                    </select>
+                    
+                    <label for="period">コマ:</label>
+                    <select id="period" required>
+                        <option value="1">1コマ目</option>
+                        <option value="2">2コマ目</option>
+                        <option value="3">3コマ目</option>
+                        <option value="4">4コマ目</option>
+                    </select>
+                    
+                    <label for="subject">授業名:</label>
+                    <input type="text" id="subject" required>
+                    
+                    <label for="location">場所:</label>
+                    <input type="text" id="location">
+                    
+                    <label for="instructor">担当:</label>
+                    <input type="text" id="instructor">
+                    
+                    <label for="materials">持ち物:</label>
+                    <input type="text" id="materials">
+                    
+                    <label for="isSubstitute">補講/休講:</label>
+                    <select id="isSubstitute">
+                        <option value="normal">通常</option>
+                        <option value="substitute">補講</option>
+                        <option value="holiday">休講</option>
+                    </select>
+                    
+                    <button type="submit">保存</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
