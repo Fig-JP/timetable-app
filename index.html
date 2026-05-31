@@ -433,20 +433,24 @@
 
     .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
     .chip {
-      padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border);
-      background: var(--bg3); color: var(--text2); font-size: 12px; font-weight: 600;
+      padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--border);
+      background: var(--bg3); color: var(--text2); font-size: 12px; font-weight: 500;
       cursor: pointer; transition: all 0.15s; white-space: nowrap;
     }
-    .chip.sel-both   { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
-    .chip.sel-a      { background: var(--accent-bg); border-color: var(--week-a); color: var(--week-a); }
-    .chip.sel-b      { background: #f5f3ff; border-color: var(--week-b); color: var(--week-b); }
+    /* selected states — border + bg tint + bold */
+    .chip.sel-both   { background: var(--accent-bg); border-color: var(--accent);  color: var(--accent);  font-weight: 700; }
+    .chip.sel-a      { background: var(--accent-bg); border-color: var(--week-a);  color: var(--week-a);  font-weight: 700; }
+    .chip.sel-b      { background: #f5f3ff;          border-color: var(--week-b);  color: var(--week-b);  font-weight: 700; }
     @media (prefers-color-scheme: dark) { .chip.sel-b { background: #1e1533; } }
-    .chip.sel-cancel { background: var(--cancel-bg); border-color: var(--cancel); color: var(--cancel); }
-    .chip.sel-supp   { background: var(--supp-bg);   border-color: var(--supp);   color: var(--supp); }
-    .chip.sel-change { background: var(--change-bg); border-color: var(--change); color: var(--change); }
-    .chip.sel-normal { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+    .chip.sel-normal { background: var(--accent-bg); border-color: var(--accent);  color: var(--accent);  font-weight: 700; }
+    .chip.sel-cancel { background: var(--cancel-bg); border-color: var(--cancel);  color: var(--cancel);  font-weight: 700; }
+    .chip.sel-supp   { background: var(--supp-bg);   border-color: var(--supp);    color: var(--supp);    font-weight: 700; }
+    .chip.sel-change { background: var(--change-bg); border-color: var(--change);  color: var(--change);  font-weight: 700; }
 
-    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 20px; }
+    .form-divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 4px 0 16px;
+    }
     .btn {
       padding: 12px; border-radius: 10px; border: none;
       font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 700;
@@ -478,6 +482,44 @@
     }
     .save-img-btn:active { background: var(--border); }
     .save-img-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+    /* ── Week Calendar (settings) ── */
+    .cal-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .cal-nav-btn {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg3); color: var(--text2); font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background 0.1s;
+    }
+    .cal-nav-btn:active { background: var(--border); }
+    .cal-month { font-size: 14px; font-weight: 700; }
+    .cal-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px;
+    }
+    .cal-dow {
+      text-align: center; font-size: 10px; font-weight: 700;
+      color: var(--text3); padding: 3px 0;
+    }
+    .cal-day {
+      aspect-ratio: 1; border-radius: 7px; border: 1px solid transparent;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      transition: all 0.12s; position: relative;
+    }
+    .cal-day:empty { cursor: default; }
+    .cal-day.other-month { color: var(--text3); }
+    .cal-day:not(:empty):hover { background: var(--bg3); }
+    .cal-day.is-today { font-weight: 700; color: var(--accent); }
+    .cal-day.week-a { background: var(--accent-bg); border-color: var(--week-a); color: var(--week-a); font-weight: 700; }
+    .cal-day.week-b { background: #f5f3ff;          border-color: var(--week-b); color: var(--week-b); font-weight: 700; }
+    @media (prefers-color-scheme: dark) { .cal-day.week-b { background: #1e1533; } }
+    .cal-legend { display: flex; gap: 12px; font-size: 11px; color: var(--text3); margin-top: 6px; }
+    .cal-legend span { display: flex; align-items: center; gap: 4px; }
+    .cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .cal-legend-dot.a { background: var(--week-a); }
+    .cal-legend-dot.b { background: var(--week-b); }
   </style>
 </head>
 <body>
@@ -541,6 +583,23 @@
     <div class="settings-title">設定</div>
 
     <div class="settings-section">
+      <div class="settings-group-label">A週 / B週 カレンダー設定</div>
+      <div style="padding:12px 14px">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="calMove(-1)">‹</button>
+          <div class="cal-month" id="calMonthLabel"></div>
+          <button class="cal-nav-btn" onclick="calMove(1)">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend">
+          <span><span class="cal-legend-dot a"></span>A週</span>
+          <span><span class="cal-legend-dot b"></span>B週</span>
+          <span style="margin-left:auto;font-size:10px">タップで切り替え</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
       <div class="settings-group-label">授業時間</div>
       <div class="settings-row"><span class="settings-row-label">1限</span><span class="settings-row-val">8:40–10:10</span></div>
       <div class="settings-row"><span class="settings-row-label">2限</span><span class="settings-row-val">10:20–11:50</span></div>
@@ -570,7 +629,7 @@
       <div class="settings-row"><span class="settings-row-label">対象</span><span class="settings-row-val">鶴岡工業高等専門学校</span></div>
     </div>
 
-    <div class="credit-block">Created by <a href="https://fig-jp.github.io/website/about">Fig</a></div>
+    <div class="credit-block">Created by <a href="#">Fig</a></div>
   </div>
 </main>
 
@@ -616,8 +675,15 @@
         <div class="chip" data-week="B"    onclick="pickWeek('B')">B週のみ</div>
       </div>
     </div>
+
+    <div class="form-divider"></div>
+
     <div class="form-group">
-      <label class="form-label">本日の状態</label>
+      <label class="form-label">特定日の変更 <span style="font-weight:400;text-transform:none;letter-spacing:0">（休講・補講・変更）</span></label>
+      <input type="date" class="form-input" id="inputOverrideDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">状態</label>
       <div class="chip-row">
         <div class="chip" data-status="normal"  onclick="pickStatus('normal')">📚 通常</div>
         <div class="chip" data-status="cancel"  onclick="pickStatus('cancel')">❌ 休講</div>
@@ -655,39 +721,70 @@ let S = {
   week: 'A',
   day: 0,
   page: 'timetable',
-  tt: {},        // "d-p-w" → {subject,teacher,room,weekType}
-  ov: {},        // "YYYY-MM-DD-p" → {status,note}
+  // tt["d-p-w"] = {subject,teacher,room,weekType}
+  // w can be 'both','A','B'
+  // A-week-only slot:  tt["d-p-A"]
+  // B-week-only slot:  tt["d-p-B"]
+  // same both weeks:   tt["d-p-both"]
+  // different per week: tt["d-p-A"] AND tt["d-p-B"] (both present, no 'both' key)
+  tt: {},
+  ov: {},           // "YYYY-MM-DD-p" → {status,note}
+  weekMap: {},      // "YYYY-MM-DD" → 'A'|'B'
 };
 let modalDay=0, modalPeriod=0, selWeek='both', selStatus='normal';
+let calYear=0, calMonth=0;
 
 // ─── Storage ───
 function load() {
   try {
-    const d = JSON.parse(localStorage.getItem('tt-v3') || '{}');
-    S.tt   = d.tt   || {};
-    S.ov   = d.ov   || {};
-    S.week = d.week || 'A';
+    const d = JSON.parse(localStorage.getItem('tt-v4') || '{}');
+    S.tt      = d.tt      || {};
+    S.ov      = d.ov      || {};
+    S.weekMap = d.weekMap || {};
+    S.week    = d.week    || 'A';
   } catch(e){}
 }
 function save() {
-  localStorage.setItem('tt-v3', JSON.stringify({tt:S.tt, ov:S.ov, week:S.week}));
+  localStorage.setItem('tt-v4', JSON.stringify({
+    tt: S.tt, ov: S.ov, weekMap: S.weekMap, week: S.week
+  }));
 }
 
 // ─── Keys ───
 function ttKey(d,p,w){ return `${d}-${p}-${w}`; }
-function ovKey(d,p){
+
+function dateOfDay(dayIdx) {
   const today = new Date();
   const dow = today.getDay();
   const mon = new Date(today);
   mon.setDate(today.getDate() + (dow===0 ? -6 : 1-dow));
-  const t = new Date(mon); t.setDate(mon.getDate()+d);
-  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}-${p}`;
+  const t = new Date(mon); t.setDate(mon.getDate()+dayIdx);
+  return t;
 }
-function getEntry(d,p){
-  return S.tt[ttKey(d,p,S.week)] || S.tt[ttKey(d,p,'both')] || null;
+function dateStr(dt) {
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
+function ovKey(d,p){ return `${dateStr(dateOfDay(d))}-${p}`; }
+
+// ─── Week for a specific date ───
+function weekForDate(dt) {
+  const ds = dateStr(dt);
+  if (S.weekMap[ds]) return S.weekMap[ds];
+  return S.week; // fallback to current toggle
 }
 
-// ─── Week ───
+// ─── Get entry (respects per-date week) ───
+function getEntry(d,p){
+  const w = weekForDate(dateOfDay(d));
+  return S.tt[ttKey(d,p,w)] || S.tt[ttKey(d,p,'both')] || null;
+}
+
+// ─── What week applies to currently selected day ───
+function currentDayWeek() {
+  return weekForDate(dateOfDay(S.day));
+}
+
+// ─── Week toggle ───
 function setWeek(w){
   S.week = w;
   document.getElementById('weekA').className = 'week-btn' + (w==='A'?' active-a':'');
@@ -722,19 +819,25 @@ function setupDates(){
 function renderTimetable(){
   const list = document.getElementById('periodList');
   list.innerHTML = '';
+  const effectiveWeek = currentDayWeek();
+
   PERIODS.forEach((p,i)=>{
     const entry = getEntry(S.day,i);
-    const ov    = S.ov[ovKey(S.day,i)] || null;
+    const dayDate = dateStr(dateOfDay(S.day));
+    const ov    = S.ov[`${dayDate}-${i}`] || null;
+
+    // Also check if there's an entry for the OTHER week (to show split info)
+    const otherW = effectiveWeek==='A' ? 'B' : 'A';
+    const hasOther = !!S.tt[ttKey(S.day,i,otherW)];
+
     const card  = document.createElement('div');
     card.className = 'period-card' + (ov ? ` has-${ov.status}` : '');
     card.onclick   = ()=> openModal(S.day,i);
 
-    // Left: period num
     const left = document.createElement('div');
     left.className = 'period-num';
     left.innerHTML = `<span class="n">${p.n}</span><span class="l">限</span><span class="t">${p.t.replace('\n','<br>')}</span>`;
 
-    // Right: content
     const right = document.createElement('div');
     right.className = 'period-body';
     if(!entry){
@@ -777,7 +880,7 @@ function updateNextStrip(){
     const p=PERIODS[i];
     if(hm < p.end[0]*60+p.end[1]){
       const entry=getEntry(S.day,i);
-      const ov=S.ov[ovKey(S.day,i)];
+      const ov=S.ov[`${dateStr(dateOfDay(S.day))}-${i}`];
       if(entry && !(ov&&ov.status==='cancel')){ found={entry,p,i}; break; }
     }
   }
@@ -792,7 +895,6 @@ function updateNextStrip(){
 
 // ─── Overview ───
 function renderOverview(){
-  // Update screenshot meta
   const now=new Date();
   document.getElementById('ssTitle').textContent=`鶴岡高専 時間割 (${S.week}週)`;
   document.getElementById('ssMeta').textContent=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} 生成`;
@@ -805,8 +907,9 @@ function renderOverview(){
   PERIODS.forEach((p,pi)=>{
     grid.innerHTML+=`<div class="ov-pd">${p.n}</div>`;
     for(let di=0;di<5;di++){
-      const entry=S.tt[ttKey(di,pi,S.week)]||S.tt[ttKey(di,pi,'both')]||null;
-      const ov=S.ov[ovKey(di,pi)];
+      const w = weekForDate(dateOfDay(di));
+      const entry=S.tt[ttKey(di,pi,w)]||S.tt[ttKey(di,pi,'both')]||null;
+      const ov=S.ov[`${dateStr(dateOfDay(di))}-${pi}`];
       let cls='ov-cell'+(entry?'':' empty')+(ov?` has-${ov.status}`:'');
       const wl=entry?(entry.weekType==='A'?'<span class="ov-wk">A週</span>':entry.weekType==='B'?'<span class="ov-wk">B週</span>':''):'';
       grid.innerHTML+=`<div class="${cls}" onclick="jumpToSlot(${di},${pi})">
@@ -827,13 +930,10 @@ async function saveImage(){
   const target=document.getElementById('screenshotTarget');
   showToast('画像を生成中…');
   try {
-    // force light bg for clean screenshot
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const canvas = await html2canvas(target, {
       backgroundColor: isDark ? '#1c1c1c' : '#ffffff',
-      scale: 2,
-      useCORS: true,
-      logging: false,
+      scale: 2, useCORS: true, logging: false,
     });
     const link=document.createElement('a');
     const now=new Date();
@@ -841,34 +941,54 @@ async function saveImage(){
     link.href=canvas.toDataURL('image/png');
     link.click();
     showToast('画像を保存しました ✓');
-  } catch(e){
-    showToast('保存に失敗しました');
-    console.error(e);
-  }
+  } catch(e){ showToast('保存に失敗しました'); console.error(e); }
 }
 
 // ─── Modal ───
 function openModal(d,p){
   modalDay=d; modalPeriod=p;
   const pd=PERIODS[p];
-  document.getElementById('modalPeriodInfo').textContent=`${DAYS[d]}曜日 ${pd.n}限 (${pd.t.replace('\n',' – ')})`;
-  const entry=getEntry(d,p);
-  const ov=S.ov[ovKey(d,p)]||null;
-  if(entry){
-    document.getElementById('inputSubject').value=entry.subject||'';
-    document.getElementById('inputTeacher').value=entry.teacher||'';
-    document.getElementById('inputRoom').value=entry.room||'';
-    selWeek=entry.weekType||'both';
-    document.getElementById('deleteBtn').style.display='block';
-  } else {
-    document.getElementById('inputSubject').value='';
-    document.getElementById('inputTeacher').value='';
-    document.getElementById('inputRoom').value='';
-    selWeek='both';
-    document.getElementById('deleteBtn').style.display='none';
-  }
-  selStatus=ov?ov.status:'normal';
-  document.getElementById('inputNote').value=ov?ov.note||'':'';
+  const effectiveWeek = weekForDate(dateOfDay(d));
+  document.getElementById('modalPeriodInfo').textContent=
+    `${DAYS[d]}曜日 ${pd.n}限 — 現在 ${effectiveWeek}週`;
+
+  // Load the entry for the CURRENT effective week, or 'both' fallback
+  const entryW    = S.tt[ttKey(d,p,effectiveWeek)] || null;
+  const entryBoth = S.tt[ttKey(d,p,'both')]        || null;
+  const entry = entryW || entryBoth;
+
+  if (entryW) selWeek = effectiveWeek;
+  else if (entryBoth) selWeek = 'both';
+  else selWeek = 'both';
+
+  document.getElementById('inputSubject').value = entry?.subject || '';
+  document.getElementById('inputTeacher').value = entry?.teacher || '';
+  document.getElementById('inputRoom').value    = entry?.room    || '';
+
+  const hasAnyEntry = !!(S.tt[ttKey(d,p,'A')] || S.tt[ttKey(d,p,'B')] || S.tt[ttKey(d,p,'both')]);
+  document.getElementById('deleteBtn').style.display = hasAnyEntry ? 'block' : 'none';
+
+  // Default override date = the day currently shown
+  const defaultDate = dateStr(dateOfDay(d));
+  document.getElementById('inputOverrideDate').value = defaultDate;
+
+  // Load existing override for that date
+  const ok = `${defaultDate}-${p}`;
+  const ov = S.ov[ok] || null;
+  selStatus = ov ? ov.status : 'normal';
+  document.getElementById('inputNote').value = ov ? ov.note||'' : '';
+
+  // When date changes, reload override status
+  document.getElementById('inputOverrideDate').onchange = () => {
+    const ds = document.getElementById('inputOverrideDate').value;
+    if(!ds){ selStatus='normal'; document.getElementById('inputNote').value=''; updateChips(); updateNoteVis(); return; }
+    const k = `${ds}-${p}`;
+    const o = S.ov[k] || null;
+    selStatus = o ? o.status : 'normal';
+    document.getElementById('inputNote').value = o ? o.note||'' : '';
+    updateChips(); updateNoteVis();
+  };
+
   updateChips(); updateNoteVis();
   document.getElementById('modalOverlay').classList.add('open');
 }
@@ -880,10 +1000,12 @@ function pickStatus(s){ selStatus=s; updateChips(); updateNoteVis(); }
 
 function updateChips(){
   document.querySelectorAll('.chip[data-week]').forEach(c=>{
-    c.className='chip'+(c.dataset.week===selWeek?` sel-${selWeek}`:'');
+    const w = c.dataset.week;
+    c.className = 'chip' + (w === selWeek ? ` sel-${w}` : '');
   });
   document.querySelectorAll('.chip[data-status]').forEach(c=>{
-    c.className='chip'+(c.dataset.status===selStatus?` sel-${selStatus}`:'');
+    const s = c.dataset.status;
+    c.className = 'chip' + (s === selStatus ? ` sel-${s}` : '');
   });
 }
 function updateNoteVis(){
@@ -898,14 +1020,26 @@ function saveEntry(){
   const teacher=document.getElementById('inputTeacher').value.trim();
   const room   =document.getElementById('inputRoom').value.trim();
   const note   =document.getElementById('inputNote').value.trim();
+  const ovDate =document.getElementById('inputOverrideDate').value; // "YYYY-MM-DD"
+
   if(subject){
-    // clear old
-    ['both','A','B'].forEach(w=>delete S.tt[ttKey(modalDay,modalPeriod,w)]);
-    S.tt[ttKey(modalDay,modalPeriod,selWeek)]={subject,teacher,room,weekType:selWeek};
+    if(selWeek==='both'){
+      delete S.tt[ttKey(modalDay,modalPeriod,'A')];
+      delete S.tt[ttKey(modalDay,modalPeriod,'B')];
+      S.tt[ttKey(modalDay,modalPeriod,'both')]={subject,teacher,room,weekType:'both'};
+    } else {
+      delete S.tt[ttKey(modalDay,modalPeriod,'both')];
+      S.tt[ttKey(modalDay,modalPeriod,selWeek)]={subject,teacher,room,weekType:selWeek};
+    }
   }
-  const ok=ovKey(modalDay,modalPeriod);
-  if(selStatus!=='normal') S.ov[ok]={status:selStatus,note};
-  else delete S.ov[ok];
+
+  // Override keyed by the specific date chosen in the picker
+  if(ovDate){
+    const ok=`${ovDate}-${modalPeriod}`;
+    if(selStatus!=='normal') S.ov[ok]={status:selStatus,note};
+    else delete S.ov[ok];
+  }
+
   save(); closeModal(); renderTimetable(); renderOverview();
   showToast('保存しました ✓');
 }
@@ -913,7 +1047,15 @@ function saveEntry(){
 function deleteEntry(){
   if(!confirm('この授業を削除しますか？')) return;
   ['both','A','B'].forEach(w=>delete S.tt[ttKey(modalDay,modalPeriod,w)]);
-  delete S.ov[ovKey(modalDay,modalPeriod)];
+  // Remove all date-specific overrides for this slot
+  const prefix = `-${modalPeriod}`;
+  Object.keys(S.ov).forEach(k=>{ if(k.endsWith(prefix) && k.split('-')[0]===String(modalDay)) delete S.ov[k]; });
+  // More precisely: remove any override for this day-index across all dates in current week
+  for(let i=0;i<5;i++){
+    if(i===modalDay){
+      delete S.ov[`${dateStr(dateOfDay(i))}-${modalPeriod}`];
+    }
+  }
   save(); closeModal(); renderTimetable(); renderOverview();
   showToast('削除しました');
 }
@@ -928,6 +1070,66 @@ function showPage(p){
   document.getElementById('dayTabs').classList.toggle('hidden', p !== 'timetable');
   document.getElementById('weekToggle').classList.toggle('hidden', p === 'settings');
   if(p==='overview') renderOverview();
+  if(p==='settings') renderCalendar();
+}
+
+// ─── Week Calendar ───
+function initCal(){
+  const now=new Date(); calYear=now.getFullYear(); calMonth=now.getMonth();
+}
+function calMove(dir){ calMonth+=dir; if(calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+
+function renderCalendar(){
+  const label=document.getElementById('calMonthLabel');
+  const grid =document.getElementById('calGrid');
+  if(!label||!grid) return;
+  label.textContent=`${calYear}年${calMonth+1}月`;
+  grid.innerHTML='';
+
+  // Day of week headers (Mon–Sun)
+  ['月','火','水','木','金','土','日'].forEach(d=>{
+    const el=document.createElement('div');
+    el.className='cal-dow'; el.textContent=d; grid.appendChild(el);
+  });
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const first=new Date(calYear,calMonth,1);
+  // Monday=0 offset
+  let startOffset = (first.getDay()+6)%7; // Mon=0
+  for(let i=0;i<startOffset;i++){
+    const el=document.createElement('div'); el.className='cal-day'; grid.appendChild(el);
+  }
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  for(let d=1;d<=daysInMonth;d++){
+    const dt=new Date(calYear,calMonth,d);
+    const ds=dateStr(dt);
+    const el=document.createElement('div');
+    el.className='cal-day';
+    el.textContent=d;
+    const w=S.weekMap[ds];
+    if(w==='A') el.classList.add('week-a');
+    else if(w==='B') el.classList.add('week-b');
+    if(dt.getTime()===today.getTime()) el.classList.add('is-today');
+    // Weekends: no click action needed but still show labels
+    el.onclick=()=>toggleDayWeek(ds,el);
+    grid.appendChild(el);
+  }
+}
+
+function toggleDayWeek(ds,el){
+  const cur=S.weekMap[ds];
+  if(!cur)       S.weekMap[ds]='A';
+  else if(cur==='A') S.weekMap[ds]='B';
+  else           delete S.weekMap[ds];
+  save();
+  renderCalendar();
+  // Also refresh timetable if this date is currently shown
+  const today=new Date(); const dow=today.getDay();
+  const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow));
+  for(let i=0;i<5;i++){
+    const d=new Date(mon); d.setDate(mon.getDate()+i);
+    if(dateStr(d)===ds){ renderTimetable(); break; }
+  }
 }
 
 // ─── Toast ───
@@ -937,13 +1139,15 @@ function showToast(msg){
   setTimeout(()=>el.classList.remove('show'),2200);
 }
 
-// ─── Settings ───
+// ─── Settings actions ───
 function resetData(){
   if(!confirm('すべてのデータをリセットしますか？')) return;
-  S.tt={}; S.ov={}; save(); renderTimetable(); renderOverview(); showToast('リセットしました');
+  S.tt={}; S.ov={}; S.weekMap={};
+  save(); renderTimetable(); renderOverview(); renderCalendar();
+  showToast('リセットしました');
 }
 function exportData(){
-  const blob=new Blob([JSON.stringify({tt:S.tt,ov:S.ov},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='tsuruoka-timetable.json'; a.click();
 }
@@ -954,8 +1158,9 @@ function importData(){
     r.onload=ev=>{
       try{
         const d=JSON.parse(ev.target.result);
-        S.tt=d.tt||{}; S.ov=d.ov||{};
-        save(); renderTimetable(); renderOverview(); showToast('インポートしました ✓');
+        S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{};
+        save(); renderTimetable(); renderOverview(); renderCalendar();
+        showToast('インポートしました ✓');
       }catch{ showToast('ファイルが無効です'); }
     };
     r.readAsText(e.target.files[0]);
@@ -965,14 +1170,13 @@ function importData(){
 
 // ─── Init ───
 load();
+initCal();
 setWeek(S.week);
 setupDates();
 setInterval(updateNextStrip,60000);
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
-  });
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
 }
 </script>
 </body>
