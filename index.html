@@ -934,42 +934,49 @@ function renderCalendar(){
   const label=document.getElementById('calMonthLabel');
   const grid=document.getElementById('calGrid');
   if(!label||!grid) return;
-  label.textContent=`${calYear}年${calMonth+1}月`;
+  label.textContent=calYear+'年'+(calMonth+1)+'月';
   grid.innerHTML='';
 
-  // Sun-start headers
-  const dows=[{l:'日',c:'sun'},{l:'月',c:''},{l:'火',c:''},{l:'水',c:''},{l:'木',c:''},{l:'金',c:''},{l:'土',c:'sat'}];
-  dows.forEach(({l,c})=>{
-    const el=document.createElement('div');
-    el.className='cal-dow'+(c?' '+c:''); el.textContent=l; grid.appendChild(el);
+  // Sun-start day-of-week headers
+  var dowDefs=[
+    {lbl:'日',cls:'sun'},{lbl:'月',cls:''},{lbl:'火',cls:''},
+    {lbl:'水',cls:''},{lbl:'木',cls:''},{lbl:'金',cls:''},{lbl:'土',cls:'sat'}
+  ];
+  dowDefs.forEach(function(def){
+    var el=document.createElement('div');
+    el.className='cal-dow'+(def.cls?' '+def.cls:'');
+    el.textContent=def.lbl;
+    grid.appendChild(el);
   });
 
-  const today=new Date(); today.setHours(0,0,0,0);
-  const first=new Date(calYear,calMonth,1);
-  const startOffset=first.getDay(); // 0=Sun
-  for(let i=0;i<startOffset;i++){
-    const el=document.createElement('div'); el.className='cal-day'; grid.appendChild(el);
+  var today=new Date(); today.setHours(0,0,0,0);
+  var first=new Date(calYear,calMonth,1);
+  var startOffset=first.getDay(); // 0=Sun
+  for(var i=0;i<startOffset;i++){
+    var blank=document.createElement('div'); blank.className='cal-day'; grid.appendChild(blank);
   }
-  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
-  for(let d=1;d<=daysInMonth;d++){
-    const dt=new Date(calYear,calMonth,d);
-    const dow=dt.getDay(); // 0=Sun,6=Sat
-    const isWeekend=(dow===0||dow===6);
-    const ds=dateStr(dt);
-    const el=document.createElement('div');
-    let cls='cal-day';
+  var daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  for(var d=1;d<=daysInMonth;d++){
+    var dt=new Date(calYear,calMonth,d);
+    var dow=dt.getDay(); // 0=Sun,6=Sat
+    var isWeekend=(dow===0||dow===6);
+    var ds=dateStr(dt);
+    var el=document.createElement('div');
+    var cls='cal-day';
     if(isWeekend) cls+=' weekend';
     if(dow===0) cls+=' cal-sun';
     if(dow===6) cls+=' cal-sat';
     if(!isWeekend){
-      const w=S.weekMap[ds];
-      if(w==='A') cls+=' week-a';
-      else if(w==='B') cls+=' week-b';
+      var wk=S.weekMap[ds];
+      if(wk==='A') cls+=' week-a';
+      else if(wk==='B') cls+=' week-b';
     }
     if(dt.getTime()===today.getTime()) cls+=' is-today';
     el.className=cls;
     el.textContent=d;
-    if(!isWeekend) el.onclick=()=>toggleDayWeek(ds);
+    if(!isWeekend){
+      (function(key){ el.onclick=function(){ toggleDayWeek(key); }; })(ds);
+    }
     grid.appendChild(el);
   }
 }
@@ -1022,12 +1029,14 @@ function importData(){
 }
 
 // ── Init ──
-load(); initCal(); setWeek(S.week); setupDates();
-renderCalendar();
-setInterval(updateNextStrip,60000);
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
-}
+document.addEventListener('DOMContentLoaded', function(){
+  load(); initCal(); setWeek(S.week); setupDates();
+  renderCalendar();
+  setInterval(updateNextStrip, 60000);
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
+});
 </script>
 </body>
 </html>
