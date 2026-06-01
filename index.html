@@ -164,98 +164,85 @@
       margin: 0 auto;
     }
 
-    /* Next class strip */
-    .next-strip {
+    /* ── Progress Strip ── */
+    .progress-strip {
       display: none;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--accent-bg);
-      border: 1px solid var(--accent);
-      border-radius: 10px;
-      padding: 9px 13px;
-      margin-bottom: 12px;
-      gap: 8px;
-    }
-    .next-strip.visible { display: flex; }
-    .next-label { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
-    .next-name  { font-size: 14px; font-weight: 700; margin-top: 1px; }
-    .next-time  { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent); white-space: nowrap; }
-
-    /* ── Timetable: day columns ── */
-    .tt-scroll {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .tt-grid {
-      display: grid;
-      grid-template-columns: 26px repeat(5, minmax(0, 1fr));
-      gap: 3px;
-      min-width: 300px;
-      width: 100%;
-    }
-    .tt-col-hd {
-      text-align: center;
-      padding: 4px 1px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text2);
-      white-space: nowrap;
-    }
-    @media (max-width: 390px) {
-      .tt-col-hd { font-size: 11px; }
-      .tt-subj   { font-size: 9px; }
-      .tt-tchr   { font-size: 8px; }
-      .tt-cell   { padding: 5px 3px; min-height: 60px; }
-      .tt-row-label { font-size: 10px; }
-    }
-    @media (max-width: 320px) {
-      .tt-grid { grid-template-columns: 22px repeat(5, minmax(0,1fr)); gap: 2px; }
-      .tt-cell { padding: 4px 2px; min-height: 54px; }
-      .tt-subj { font-size: 8px; }
-      .tt-tchr { display: none; }
-    }
-    .tt-col-hd.today-hd { color: var(--accent); }
-    .tt-row-label {
-      display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--accent);
-      padding: 4px 0;
-    }
-    .tt-cell {
       background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 5px 4px;
-      min-height: 64px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: flex-start;
-      cursor: pointer;
-      transition: background 0.1s;
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      margin-bottom: 14px;
       overflow: hidden;
       box-shadow: var(--shadow);
+      position: relative;
     }
-    .tt-cell:active { background: var(--bg3); }
-    .tt-cell.has-cancel { border-color: var(--cancel); background: var(--cancel-bg); }
-    .tt-cell.has-supp   { border-color: var(--supp);   background: var(--supp-bg); }
-    .tt-cell.has-change { border-color: var(--change);  background: var(--change-bg); }
-    .tt-cell.selected   { border-color: var(--accent); border-width: 2px; }
-    .tt-cell-empty { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 52px; color: var(--border); font-size: 18px; }
-    .tt-subj { font-size: 10px; font-weight: 700; color: var(--text); line-height: 1.3; overflow-wrap: break-word; word-break: break-word; }
-    .tt-tchr { font-size: 9px; color: var(--text2); margin-top: 2px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-    .tt-badge { font-size: 8px; margin-top: 4px; padding: 1px 4px; border-radius: 3px; border: 1px solid; font-weight: 700; align-self: flex-start; }
+    .progress-strip.visible { display: flex; }
+    .progress-strip.in-break { border-color: var(--border); }
+    .progress-bar-bg {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: var(--accent-bg);
+      z-index: 0;
+      transition: width 30s linear;
+    }
+    .progress-strip.in-break .progress-bar-bg { background: var(--bg3); }
+    .progress-strip-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .ps-left { display: flex; flex-direction: column; gap: 1px; }
+    .ps-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+    .ps-label.lbl-break { color: var(--text3); }
+    .ps-name  { font-size: 15px; font-weight: 700; }
+    .ps-sub   { font-size: 11px; color: var(--text2); margin-top: 1px; }
+    .ps-time  { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+    .progress-strip.in-break .ps-time { color: var(--text2); }
+
+    /* ── Timetable: day-view list ── */
+    .tt-day-list { display: flex; flex-direction: column; gap: 8px; }
+    .tt-day-row { display: flex; align-items: stretch; gap: 10px; }
+    .tt-day-row-label {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-width: 40px; flex-shrink: 0; text-align: center;
+    }
+    .tt-day-row-label .lbl-n { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 700; color: var(--accent); line-height: 1; }
+    .tt-day-row-label .lbl-gen { font-size: 9px; color: var(--text3); }
+    .tt-day-row-label .lbl-time { font-size: 9px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; margin-top: 4px; line-height: 1.5; }
+    .tt-day-cell {
+      flex: 1; background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 14px;
+      display: flex; flex-direction: column; justify-content: center;
+      cursor: pointer; transition: background 0.1s, transform 0.08s;
+      box-shadow: var(--shadow); min-height: 72px;
+      position: relative; overflow: hidden;
+    }
+    .tt-day-cell:active { background: var(--bg3); transform: scale(0.985); }
+    .tt-day-cell.has-cancel { border-color: var(--cancel); background: var(--cancel-bg); }
+    .tt-day-cell.has-supp   { border-color: var(--supp);   background: var(--supp-bg); }
+    .tt-day-cell.has-change { border-color: var(--change);  background: var(--change-bg); }
+    .tt-day-cell.is-now { border-color: var(--accent); border-width: 2px; }
+    .tt-day-cell .cell-now-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
+    .tt-day-cell.has-cancel .cell-now-bar { background: var(--cancel); }
+    .tt-day-cell-empty { display: flex; align-items: center; gap: 8px; color: var(--text3); font-size: 13px; }
+    .tt-day-cell .cell-subj { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .tt-day-cell .cell-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+    .tt-day-cell .cell-tchr { font-size: 12px; color: var(--text2); }
+    .tt-day-cell .cell-room { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+    .tt-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; border: 1px solid; font-weight: 700; }
     .tt-badge-a      { color: var(--week-a); border-color: var(--week-a); background: var(--accent-bg); }
     .tt-badge-b      { color: var(--week-b); border-color: var(--week-b); background: #f5f3ff; }
     @media (prefers-color-scheme: dark) { .tt-badge-b { background: #1e1533; } }
     .tt-badge-cancel { color: var(--cancel); border-color: var(--cancel); background: var(--cancel-bg); }
     .tt-badge-supp   { color: var(--supp);   border-color: var(--supp);   background: var(--supp-bg); }
     .tt-badge-change { color: var(--change); border-color: var(--change); background: var(--change-bg); }
+    /* Keep for overview compat */
+    .tt-subj { font-size: 10px; font-weight: 700; color: var(--text); line-height: 1.3; overflow-wrap: break-word; word-break: break-word; }
+    .tt-tchr { font-size: 9px; color: var(--text2); margin-top: 2px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 
     /* Badges (modal) */
     .badges { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
@@ -492,14 +479,18 @@
 <main id="mainContent">
   <!-- Timetable page -->
   <div id="page-timetable" class="page active">
-    <div class="next-strip" id="nextStrip">
-      <div>
-        <div class="next-label">次の授業</div>
-        <div class="next-name" id="nextName">—</div>
+    <div class="progress-strip" id="progressStrip">
+      <div class="progress-bar-bg" id="progressBarBg"></div>
+      <div class="progress-strip-inner">
+        <div class="ps-left">
+          <div class="ps-label" id="psLabel">次の授業</div>
+          <div class="ps-name" id="psName">—</div>
+          <div class="ps-sub"  id="psSub"></div>
+        </div>
+        <div class="ps-time" id="psTime">—</div>
       </div>
-      <div class="next-time" id="nextTime">—</div>
     </div>
-    <div class="tt-scroll"><div id="ttGrid"></div></div>
+    <div id="ttDayList" class="tt-day-list"></div>
   </div>
 
   <!-- Overview page -->
@@ -709,91 +700,175 @@ function setupDates(){
   selectDay(S.day);
 }
 
-// ── Render Timetable (5-column grid) ──
+// ── Render Timetable (single-day list) ──
 function renderTimetable(){
-  const container=document.getElementById('ttGrid');
+  const container=document.getElementById('ttDayList');
   container.innerHTML='';
-  const grid=document.createElement('div');
-  grid.className='tt-grid';
 
-  const today=new Date(), dow=today.getDay();
-  const todayDayIdx=dow>=1&&dow<=5?dow-1:-1;
+  const now=new Date(), dow=now.getDay();
+  const hm=now.getHours()*60+now.getMinutes();
+  const isToday=(dow>=1&&dow<=5&&dow-1===S.day);
 
-  // Header row: empty + Mon-Fri
-  grid.innerHTML+=`<div></div>`;
-  for(let di=0;di<5;di++){
-    const d=dateOfDay(di);
-    const isToday=(di===todayDayIdx);
-    grid.innerHTML+=`<div class="tt-col-hd${isToday?' today-hd':''}">${DAYS[di]}<br><span style="font-size:9px;font-weight:400;font-family:'IBM Plex Mono',monospace">${d.getMonth()+1}/${d.getDate()}</span></div>`;
-  }
-
-  // Period rows
   for(let pi=0;pi<PERIODS.length;pi++){
     const p=PERIODS[pi];
-    grid.innerHTML+=`<div class="tt-row-label">${p.n}<span style="font-size:8px;color:var(--text3);display:block">限</span></div>`;
+    const entry=getEntry(S.day,pi);
+    const dayDate=dateStr(dateOfDay(S.day));
+    const ov=S.ov[`${dayDate}-${pi}`]||null;
 
-    for(let di=0;di<5;di++){
-      const entry=getEntry(di,pi);
-      const dayDate=dateStr(dateOfDay(di));
-      const ov=S.ov[`${dayDate}-${pi}`]||null;
+    const startMin=p.start[0]*60+p.start[1];
+    const endMin=p.end[0]*60+p.end[1];
+    const isNow=isToday&&hm>=startMin&&hm<endMin;
+    const isPast=isToday&&hm>=endMin;
 
-      let cls='tt-cell';
-      if(ov) cls+=` has-${ov.status}`;
-      if(di===S.day) cls+=' selected';
+    // row
+    const row=document.createElement('div');
+    row.className='tt-day-row';
 
-      const cell=document.createElement('div');
-      cell.className=cls;
-      cell.onclick=()=>{ selectDay(di); openModal(di,pi); };
+    // label
+    const lbl=document.createElement('div');
+    lbl.className='tt-day-row-label';
+    const sh=`${p.start[0]}:${String(p.start[1]).padStart(2,'0')}`;
+    const eh=`${p.end[0]}:${String(p.end[1]).padStart(2,'0')}`;
+    lbl.innerHTML=`<span class="lbl-n">${p.n}</span><span class="lbl-gen">限</span><span class="lbl-time">${sh}<br>${eh}</span>`;
 
-      if(!entry){
-        cell.innerHTML=`<div class="tt-cell-empty">+</div>`;
-      } else {
-        const wt=entry.weekType||'both';
-        let badge='';
-        if(ov){
-          if(ov.status==='cancel') badge=`<span class="tt-badge tt-badge-cancel">休講</span>`;
-          else if(ov.status==='supp')  badge=`<span class="tt-badge tt-badge-supp">補講</span>`;
-          else if(ov.status==='change') badge=`<span class="tt-badge tt-badge-change">変更</span>`;
-        } else if(wt==='A'){
-          badge=`<span class="tt-badge tt-badge-a">A</span>`;
-        } else if(wt==='B'){
-          badge=`<span class="tt-badge tt-badge-b">B</span>`;
-        }
-        cell.innerHTML=`
-          <div class="tt-subj">${entry.subject}</div>
-          ${entry.teacher?`<div class="tt-tchr">${entry.teacher}</div>`:''}
-          ${badge}`;
+    // cell
+    const cell=document.createElement('div');
+    let cls='tt-day-cell';
+    if(ov) cls+=` has-${ov.status}`;
+    if(isNow) cls+=' is-now';
+    if(isPast) cls+=' is-past';
+    cell.className=cls;
+    cell.onclick=()=>openModal(S.day,pi);
+
+    if(isNow) cell.innerHTML=`<div class="cell-now-bar"></div>`;
+
+    if(!entry){
+      cell.innerHTML+= `<div class="tt-day-cell-empty"><span style="font-size:22px;color:var(--border)">+</span><span>タップして追加</span></div>`;
+    } else {
+      const wt=entry.weekType||'both';
+      let badge='';
+      if(ov){
+        if(ov.status==='cancel') badge=`<span class="tt-badge tt-badge-cancel">休講</span>`;
+        else if(ov.status==='supp') badge=`<span class="tt-badge tt-badge-supp">補講</span>`;
+        else if(ov.status==='change') badge=`<span class="tt-badge tt-badge-change">変更</span>`;
+      } else if(wt==='A'){
+        badge=`<span class="tt-badge tt-badge-a">A週</span>`;
+      } else if(wt==='B'){
+        badge=`<span class="tt-badge tt-badge-b">B週</span>`;
       }
-      grid.appendChild(cell);
+      const metaParts=[];
+      if(entry.teacher) metaParts.push(`<span class="cell-tchr">${entry.teacher}</span>`);
+      if(entry.room)    metaParts.push(`<span class="cell-room">${entry.room}</span>`);
+      if(badge)         metaParts.push(badge);
+      cell.innerHTML+=`
+        <div class="cell-subj">${entry.subject}</div>
+        ${metaParts.length?`<div class="cell-meta">${metaParts.join('')}</div>`:''}
+      `;
+    }
+
+    row.appendChild(lbl);
+    row.appendChild(cell);
+    container.appendChild(row);
+  }
+
+  updateProgressStrip();
+}
+
+function updateProgressStrip(){
+  const strip=document.getElementById('progressStrip');
+  const bar=document.getElementById('progressBarBg');
+  const now=new Date(), dow=now.getDay();
+  if(dow<1||dow>5){ strip.classList.remove('visible'); return; }
+
+  const hm=now.getHours()*60+now.getMinutes();
+  const todayDayIdx=dow-1;
+
+  // Check if currently in a class period
+  for(let i=0;i<PERIODS.length;i++){
+    const p=PERIODS[i];
+    const startMin=p.start[0]*60+p.start[1];
+    const endMin=p.end[0]*60+p.end[1];
+    if(hm>=startMin&&hm<endMin){
+      const entry=getEntry(todayDayIdx,i);
+      const ov=S.ov[`${dateStr(dateOfDay(todayDayIdx))}-${i}`];
+      const totalMin=endMin-startMin;
+      const elapsed=hm-startMin;
+      const pct=Math.min(100,Math.round(elapsed/totalMin*100));
+      const remain=endMin-hm;
+
+      strip.classList.add('visible');
+      strip.classList.remove('in-break');
+      bar.style.width=pct+'%';
+
+      document.getElementById('psLabel').textContent=`${p.n}コマ目 授業中`;
+      document.getElementById('psLabel').className='ps-label';
+      if(entry&&!(ov&&ov.status==='cancel')){
+        document.getElementById('psName').textContent=entry.subject;
+        document.getElementById('psSub').textContent=entry.teacher||'';
+      } else {
+        document.getElementById('psName').textContent='(登録なし)';
+        document.getElementById('psSub').textContent='';
+      }
+      document.getElementById('psTime').textContent=`残${remain}分`;
+      return;
     }
   }
 
-  container.appendChild(grid);
-  updateNextStrip();
-}
+  // Check if in a break between periods
+  for(let i=0;i<PERIODS.length-1;i++){
+    const breakStart=PERIODS[i].end[0]*60+PERIODS[i].end[1];
+    const breakEnd=PERIODS[i+1].start[0]*60+PERIODS[i+1].start[1];
+    if(hm>=breakStart&&hm<breakEnd){
+      const totalMin=breakEnd-breakStart;
+      const elapsed=hm-breakStart;
+      const pct=Math.min(100,Math.round(elapsed/totalMin*100));
+      const remain=breakEnd-hm;
+      const nextP=PERIODS[i+1];
+      const nextEntry=getEntry(todayDayIdx,i+1);
+      const nextOv=S.ov[`${dateStr(dateOfDay(todayDayIdx))}-${i+1}`];
 
-function updateNextStrip(){
-  const strip=document.getElementById('nextStrip');
-  const now=new Date(), dow=now.getDay();
-  if(dow<1||dow>5){ strip.classList.remove('visible'); return; }
-  const hm=now.getHours()*60+now.getMinutes();
-  const todayDayIdx=dow-1;
+      strip.classList.add('visible','in-break');
+      bar.style.width=pct+'%';
+
+      document.getElementById('psLabel').textContent=`休憩中 → ${nextP.n}コマ目`;
+      document.getElementById('psLabel').className='ps-label lbl-break';
+      if(nextEntry&&!(nextOv&&nextOv.status==='cancel')){
+        document.getElementById('psName').textContent=nextEntry.subject;
+        document.getElementById('psSub').textContent=nextEntry.teacher||'';
+      } else {
+        document.getElementById('psName').textContent='(登録なし)';
+        document.getElementById('psSub').textContent='';
+      }
+      document.getElementById('psTime').textContent=`${remain}分後`;
+      return;
+    }
+  }
+
+  // Next upcoming class (before first period or after last break ended)
   let found=null;
   for(let i=0;i<PERIODS.length;i++){
     const p=PERIODS[i];
-    if(hm<p.end[0]*60+p.end[1]){
+    const startMin=p.start[0]*60+p.start[1];
+    if(hm<startMin){
       const entry=getEntry(todayDayIdx,i);
       const ov=S.ov[`${dateStr(dateOfDay(todayDayIdx))}-${i}`];
-      if(entry&&!(ov&&ov.status==='cancel')){ found={entry,p}; break; }
+      if(entry&&!(ov&&ov.status==='cancel')){ found={entry,p,i}; break; }
     }
   }
-  if(!found){ strip.classList.remove('visible'); return; }
-  strip.classList.add('visible');
-  document.getElementById('nextName').textContent=found.entry.subject;
-  const startMin=found.p.start[0]*60+found.p.start[1];
-  const endMin=found.p.end[0]*60+found.p.end[1];
-  document.getElementById('nextTime').textContent=
-    hm<startMin?`${startMin-hm}分後`:`残${endMin-hm}分`;
+  if(found){
+    const startMin=found.p.start[0]*60+found.p.start[1];
+    strip.classList.add('visible');
+    strip.classList.remove('in-break');
+    bar.style.width='0%';
+    document.getElementById('psLabel').textContent=`${found.p.n}コマ目 次の授業`;
+    document.getElementById('psLabel').className='ps-label';
+    document.getElementById('psName').textContent=found.entry.subject;
+    document.getElementById('psSub').textContent=found.entry.teacher||'';
+    document.getElementById('psTime').textContent=`${startMin-hm}分後`;
+    return;
+  }
+
+  strip.classList.remove('visible');
 }
 
 // ── Overview ──
@@ -884,7 +959,9 @@ function pickWeek(w){ selWeek=w; updateChips(); }
 function pickStatus(s){ selStatus=s; updateChips(); updateNoteVis(); }
 function updateChips(){
   document.querySelectorAll('.chip[data-week]').forEach(c=>{
-    c.className='chip'+(c.dataset.week===selWeek?` sel-${c.dataset.week}`:'');
+    const match=(c.dataset.week===selWeek);
+    const key=c.dataset.week.toLowerCase();
+    c.className='chip'+(match?` sel-${key}`:'');
   });
   document.querySelectorAll('.chip[data-status]').forEach(c=>{
     c.className='chip'+(c.dataset.status===selStatus?` sel-${c.dataset.status}`:'');
@@ -934,10 +1011,10 @@ function showPage(p){
   document.getElementById('page-'+p).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('nav-'+p).classList.add('active');
-  document.getElementById('dayTabs').classList.add('hidden');
+  document.getElementById('dayTabs').classList.toggle('hidden', p!=='timetable');
   document.getElementById('weekToggle').classList.toggle('hidden',p==='settings');
+  if(p==='timetable') renderTimetable();
   if(p==='overview') renderOverview();
-  // render calendar AFTER the page is visible so the grid has width
   if(p==='settings') requestAnimationFrame(function(){ renderCalendar(); });
 }
 
@@ -1057,7 +1134,7 @@ function importData(){
         const d=JSON.parse(ev.target.result);
         S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{};
         save(); renderTimetable(); renderOverview(); renderCalendar(); showToast('インポートしました ✓');
-      }catch{ showToast('ファイルが無効です'); }
+      }catch(e){ showToast('ファイルが無効です'); }
     };
     r.readAsText(e.target.files[0]);
   };
@@ -1066,14 +1143,16 @@ function importData(){
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', function(){
-  load(); initCal(); setWeek(S.week); setupDates();
+  load(); initCal(); setupDates(); setWeek(S.week);
+  document.getElementById('dayTabs').classList.remove('hidden');
+  renderTimetable(); renderOverview();
   // Don't call renderCalendar here - settings page is hidden, grid has no width.
   // It will be called via showPage('settings') -> requestAnimationFrame.
-  setInterval(updateNextStrip, 60000);
+  setInterval(updateProgressStrip, 30000);
   // Auto-expire overrides older than today
   expireOldOverrides();
   if('serviceWorker' in navigator){
-    window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function(e){ console.warn('SW registration failed:', e); });
   }
 });
 </script>
