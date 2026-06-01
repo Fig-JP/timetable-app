@@ -542,6 +542,13 @@
     </div>
 
     <div class="settings-section">
+      <div class="settings-group-label">通知</div>
+      <div class="settings-row" onclick="window._requestNotifPermission()">
+        <span class="settings-row-label">授業開始通知（3分前）</span>
+        <span class="settings-row-val" id="notifPermBtn">許可する →</span>
+      </div>
+    </div>
+    <div class="settings-section">
       <div class="settings-group-label">データ管理</div>
       <div class="settings-row" onclick="exportData()"><span class="settings-row-label">JSONでエクスポート</span><span class="settings-row-val">→</span></div>
       <div class="settings-row" onclick="importData()"><span class="settings-row-label">JSONをインポート</span><span class="settings-row-val">→</span></div>
@@ -554,7 +561,7 @@
       <div class="settings-row"><span class="settings-row-label">対象</span><span class="settings-row-val">鶴岡工業高等専門学校</span></div>
     </div>
 
-    <div class="credit-block">Created by <a href="https://fig-jp.github.io/website/about">Fig</a></div>
+    <div class="credit-block">Created by <a href="#">Fig</a></div>
   </div>
 </main>
 
@@ -1014,7 +1021,7 @@ function showPage(p){
   document.getElementById('weekToggle').classList.toggle('hidden',p!=='overview');
   if(p==='timetable') renderTimetable();
   if(p==='overview') renderOverview();
-  if(p==='settings') requestAnimationFrame(function(){ renderCalendar(); });
+  if(p==='settings') requestAnimationFrame(function(){ renderCalendar(); renderNotifBtn(); });
 }
 
 // ── Calendar (Sun-start, weekends disabled) ──
@@ -1152,8 +1159,75 @@ document.addEventListener('DOMContentLoaded', function(){
   setInterval(updateProgressStrip, 30000);
   // Auto-expire overrides older than today
   expireOldOverrides();
+  // ── Notification Scheduler ──
+  let _notifTimers=[];
+  function clearNotifTimers(){ _notifTimers.forEach(clearTimeout); _notifTimers=[]; }
+
+  function scheduleNotifications(){
+    clearNotifTimers();
+    if(!('Notification' in window)||Notification.permission!=='granted') return;
+    const now=new Date(), dow=now.getDay();
+    if(dow<1||dow>5) return;
+    const todayDayIdx=dow-1;
+    const todayDate=dateStr(dateOfDay(todayDayIdx));
+    const hm=now.getHours()*60+now.getMinutes();
+    const NOTIFY_BEFORE=3; // minutes
+
+    for(let i=0;i<PERIODS.length;i++){
+      const p=PERIODS[i];
+      const startMin=p.start[0]*60+p.start[1];
+      const notifyMin=startMin-NOTIFY_BEFORE;
+      if(hm>=notifyMin) continue; // already past
+
+      const entry=getEntry(todayDayIdx,i);
+      const ov=S.ov[`${todayDate}-${i}`];
+      if(!entry||(ov&&ov.status==='cancel')) continue;
+
+      const msUntil=(notifyMin-hm)*60*1000 - now.getSeconds()*1000 - now.getMilliseconds();
+      const subj=entry.subject;
+      const pNum=p.n;
+      const tid=setTimeout(function(){
+        navigator.serviceWorker.ready.then(function(reg){
+          reg.showNotification(`${pNum}コマ目 開始3分前です`, {
+            body: subj+(entry.teacher?` / ${entry.teacher}`:'' )+(entry.room?` (${entry.room})`:''),
+            icon: './icon-192x192.png',
+            badge: './icon-192x192.png',
+            tag: `period-${pNum}`,
+            renotify: false,
+            silent: false
+          });
+        });
+      }, msUntil);
+      _notifTimers.push(tid);
+    }
+  }
+
+  async function requestNotifPermission(){
+    if(!('Notification' in window)){ showToast('この環境は通知未対応です'); return; }
+    if(Notification.permission==='granted'){ scheduleNotifications(); showToast('通知は許可済みです'); return; }
+    const r=await Notification.requestPermission();
+    if(r==='granted'){ scheduleNotifications(); showToast('通知を有効にしました ✓'); renderNotifBtn(); }
+    else { showToast('通知が拒否されました'); }
+  }
+
+  function renderNotifBtn(){
+    const btn=document.getElementById('notifPermBtn');
+    if(!btn) return;
+    if(!('Notification' in window)){ btn.style.display='none'; return; }
+    if(Notification.permission==='granted'){
+      btn.textContent='通知: ON ✓';
+      btn.style.color='var(--accent)';
+    } else {
+      btn.textContent='授業開始通知を有効にする';
+      btn.style.color='';
+    }
+  }
+  window._requestNotifPermission=requestNotifPermission;
+
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function(e){ console.warn('SW registration failed:', e); });
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).then(function(){
+      scheduleNotifications();
+    }).catch(function(e){ console.warn('SW registration failed:', e); });
   }
 });
 </script>
