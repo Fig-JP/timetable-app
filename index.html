@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f5">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111111">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -15,7 +15,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    /* ── Light / Dark tokens ── */
     :root {
       --bg:        #f5f5f5;
       --bg2:       #ffffff;
@@ -34,10 +33,7 @@
       --supp-bg:   #f0fdf4;
       --change:    #d97706;
       --change-bg: #fffbeb;
-      --header-bg: rgba(245,245,245,0.9);
-      --tab-bg:    rgba(245,245,245,0.85);
-      --modal-bg:  #ffffff;
-      --input-bg:  #f5f5f5;
+      --header-bg: rgba(245,245,245,0.92);
       --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
       --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
     }
@@ -60,10 +56,7 @@
         --supp-bg:   #162a1e;
         --change:    #f59e0b;
         --change-bg: #2a1f0a;
-        --header-bg: rgba(17,17,17,0.9);
-        --tab-bg:    rgba(17,17,17,0.85);
-        --modal-bg:  #1c1c1c;
-        --input-bg:  #272727;
+        --header-bg: rgba(17,17,17,0.92);
         --shadow:    0 1px 3px rgba(0,0,0,0.3);
         --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
       }
@@ -80,55 +73,18 @@
       line-height: 1.5;
     }
 
-    /* ── Liquid Glass ── */
-    /* Light mode */
-    :root {
-      --glass-bg:     rgba(255,255,255,0.72);
-      --glass-border: rgba(255,255,255,0.9);
-      --glass-shadow: 0 1px 0 rgba(255,255,255,0.6) inset,
-                      0 4px 20px rgba(0,0,0,0.08);
-      --glass-specular: linear-gradient(135deg,
-        rgba(255,255,255,0.55) 0%,
-        rgba(255,255,255,0.1)  50%,
-        rgba(255,255,255,0.0)  100%);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --glass-bg:     rgba(28,28,30,0.75);
-        --glass-border: rgba(255,255,255,0.1);
-        --glass-shadow: 0 1px 0 rgba(255,255,255,0.08) inset,
-                        0 4px 20px rgba(0,0,0,0.35);
-        --glass-specular: linear-gradient(135deg,
-          rgba(255,255,255,0.10) 0%,
-          rgba(255,255,255,0.03) 50%,
-          rgba(255,255,255,0.0)  100%);
-      }
-    }
-
     /* ── Header ── */
     header {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: var(--glass-bg);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border-bottom: 1px solid var(--glass-border);
-      box-shadow: var(--glass-shadow);
+      background: var(--header-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
       padding-top: max(10px, env(safe-area-inset-top));
-      padding-bottom: 10px;
-      padding-left: max(16px, env(safe-area-inset-left));
-      padding-right: max(16px, env(safe-area-inset-right));
     }
-    header::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--glass-specular);
-      pointer-events: none;
-      border-radius: inherit;
-    }
-    header { position: sticky; }  /* ensure stacking context */
     .header-inner {
       display: flex;
       align-items: center;
@@ -137,29 +93,17 @@
       max-width: 600px;
       margin: 0 auto;
     }
-    .logo-main {
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      color: var(--text);
-    }
-    .logo-sub {
-      font-size: 10px;
-      color: var(--text3);
-      font-family: 'IBM Plex Mono', monospace;
-      margin-top: 1px;
-    }
+    .logo-main { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+    .logo-sub  { font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; margin-top: 1px; }
 
     /* Week toggle */
     .week-toggle {
       display: flex;
-      background: rgba(120,120,128,0.12);
-      border-radius: 10px;
+      background: var(--bg3);
+      border-radius: 8px;
       padding: 2px;
       gap: 2px;
-      border: 1px solid var(--glass-border);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
     }
     .week-toggle.hidden { display: none; }
     .week-btn {
@@ -180,13 +124,12 @@
     /* ── Day Tabs ── */
     .day-tabs {
       display: flex;
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-      border-bottom: 1px solid var(--glass-border);
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
       position: sticky;
-      /* JS sets this dynamically; fallback for non-notch */
-      top: var(--header-h, 64px);
+      top: 57px;
       z-index: 99;
     }
     .day-tabs.hidden { display: none; }
@@ -211,7 +154,7 @@
 
     /* ── Main ── */
     main {
-      padding: 12px 14px calc(80px + env(safe-area-inset-bottom));
+      padding: 12px 14px calc(68px + env(safe-area-inset-bottom));
       max-width: 600px;
       margin: 0 auto;
     }
@@ -230,89 +173,76 @@
     }
     .next-strip.visible { display: flex; }
     .next-label { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
-    .next-name { font-size: 14px; font-weight: 700; margin-top: 1px; }
-    .next-time { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+    .next-name  { font-size: 14px; font-weight: 700; margin-top: 1px; }
+    .next-time  { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent); white-space: nowrap; }
 
-    /* ── Period Card ── */
-    .period-card {
+    /* ── Timetable: day columns ── */
+    .tt-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -14px;
+      padding: 0 14px 4px;
+    }
+    .tt-grid {
       display: grid;
-      grid-template-columns: 48px 1fr;
-      border-radius: 14px;
-      border: 1px solid var(--glass-border);
-      background: var(--glass-bg);
-      box-shadow: var(--glass-shadow);
-      margin-bottom: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: box-shadow 0.15s, transform 0.1s;
-      animation: fadeUp 0.25s ease both;
+      grid-template-columns: 28px repeat(5, minmax(58px, 1fr));
+      gap: 4px;
+      min-width: 340px;
     }
-    .period-card:nth-child(2) { animation-delay: 0.04s; }
-    .period-card:nth-child(3) { animation-delay: 0.08s; }
-    .period-card:nth-child(4) { animation-delay: 0.12s; }
-    .period-card:nth-child(5) { animation-delay: 0.16s; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .tt-col-hd {
+      text-align: center;
+      padding: 5px 2px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text2);
+      white-space: nowrap;
     }
-    .period-card:active { transform: scale(0.99); box-shadow: none; }
-    .period-card.has-cancel  { border-color: var(--cancel);  }
-    .period-card.has-supp    { border-color: var(--supp);    }
-    .period-card.has-change  { border-color: var(--change);  }
-
-    .period-num {
+    .tt-col-hd.today-hd { color: var(--accent); }
+    .tt-row-label {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 14px 0;
-      background: var(--bg3);
-      border-right: 1px solid var(--border);
-    }
-    .period-num .n {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 18px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--accent);
-      line-height: 1;
+      padding: 4px 0;
     }
-    .period-num .l { font-size: 9px; color: var(--text3); margin-top: 1px; }
-    .period-num .t { font-size: 8px; color: var(--text3); margin-top: 5px; font-family: 'IBM Plex Mono', monospace; text-align: center; line-height: 1.5; }
-
-    .period-body {
-      padding: 11px 13px;
-      min-height: 74px;
+    .tt-cell {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 7px 6px;
+      min-height: 68px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
+      align-items: flex-start;
+      cursor: pointer;
+      transition: background 0.1s;
+      overflow: hidden;
+      box-shadow: var(--shadow);
     }
+    .tt-cell:active { background: var(--bg3); }
+    .tt-cell.has-cancel { border-color: var(--cancel); background: var(--cancel-bg); }
+    .tt-cell.has-supp   { border-color: var(--supp);   background: var(--supp-bg); }
+    .tt-cell.has-change { border-color: var(--change);  background: var(--change-bg); }
+    .tt-cell.selected   { border-color: var(--accent); border-width: 2px; }
+    .tt-cell-empty { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 52px; color: var(--border); font-size: 18px; }
+    .tt-subj { font-size: 10px; font-weight: 700; color: var(--text); line-height: 1.3; word-break: break-all; }
+    .tt-tchr { font-size: 9px; color: var(--text2); margin-top: 3px; line-height: 1.2; word-break: break-all; }
+    .tt-badge { font-size: 8px; margin-top: 4px; padding: 1px 4px; border-radius: 3px; border: 1px solid; font-weight: 700; align-self: flex-start; }
+    .tt-badge-a      { color: var(--week-a); border-color: var(--week-a); background: var(--accent-bg); }
+    .tt-badge-b      { color: var(--week-b); border-color: var(--week-b); background: #f5f3ff; }
+    @media (prefers-color-scheme: dark) { .tt-badge-b { background: #1e1533; } }
+    .tt-badge-cancel { color: var(--cancel); border-color: var(--cancel); background: var(--cancel-bg); }
+    .tt-badge-supp   { color: var(--supp);   border-color: var(--supp);   background: var(--supp-bg); }
+    .tt-badge-change { color: var(--change); border-color: var(--change); background: var(--change-bg); }
 
-    /* Empty */
-    .empty-hint {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text3);
-      font-size: 12px;
-    }
-    .empty-plus {
-      width: 24px; height: 24px;
-      border-radius: 50%;
-      border: 1.5px dashed var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; color: var(--text3);
-      flex-shrink: 0;
-    }
-
-    /* Subject */
-    .subj-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-    .subj-name { font-size: 15px; font-weight: 700; line-height: 1.25; flex: 1; }
+    /* Badges (modal) */
     .badges { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
-    .badge {
-      font-size: 9px; padding: 1px 6px; border-radius: 4px;
-      font-weight: 700; letter-spacing: 0.03em; white-space: nowrap;
-      border: 1px solid;
-    }
+    .badge { font-size: 9px; padding: 1px 6px; border-radius: 4px; font-weight: 700; border: 1px solid; white-space: nowrap; }
     .badge-a      { color: var(--week-a); border-color: var(--week-a); background: var(--accent-bg); }
     .badge-b      { color: var(--week-b); border-color: var(--week-b); background: #f5f3ff; }
     @media (prefers-color-scheme: dark) { .badge-b { background: #1e1533; } }
@@ -321,45 +251,31 @@
     .badge-supp   { color: var(--supp);   border-color: var(--supp);   background: var(--supp-bg); }
     .badge-change { color: var(--change); border-color: var(--change); background: var(--change-bg); }
 
-    .subj-meta { display: flex; gap: 10px; font-size: 11px; color: var(--text2); flex-wrap: wrap; }
-    .subj-meta span { display: flex; align-items: center; gap: 3px; }
-
-    .subj-note {
-      margin-top: 5px; font-size: 11px; padding: 4px 8px;
-      border-radius: 5px; border-left: 2px solid;
-      line-height: 1.4;
-    }
-    .note-cancel { background: var(--cancel-bg); border-color: var(--cancel); color: var(--cancel); }
-    .note-supp   { background: var(--supp-bg);   border-color: var(--supp);   color: var(--supp);   }
-    .note-change { background: var(--change-bg); border-color: var(--change); color: var(--change); }
-
     /* ── Bottom Nav ── */
     .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-      background: var(--glass-bg);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border-top: 1px solid var(--glass-border);
-      box-shadow: var(--glass-shadow);
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--header-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
       display: flex;
-      padding-top: 8px;
-      padding-left: max(0px, env(safe-area-inset-left));
-      padding-right: max(0px, env(safe-area-inset-right));
-      /* key fix: pad bottom so content clears home indicator */
-      padding-bottom: max(12px, env(safe-area-inset-bottom));
-      position: relative;
-    }
-    .bottom-nav::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--glass-specular);
-      pointer-events: none;
+      align-items: center;
+      padding: 6px 0 max(8px, env(safe-area-inset-bottom));
     }
     .nav-btn {
-      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
-      padding: 4px 0; border: none; background: transparent;
-      color: var(--text3); cursor: pointer; font-size: 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 4px 0;
+      border: none;
+      background: transparent;
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 10px;
       font-family: 'Noto Sans JP', sans-serif;
       transition: color 0.15s;
     }
@@ -372,20 +288,9 @@
 
     /* Overview grid */
     .ov-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-    .ov-grid {
-      display: grid;
-      grid-template-columns: 36px repeat(5, 1fr);
-      gap: 3px;
-    }
-    .ov-hd {
-      text-align: center; padding: 5px 2px;
-      font-size: 11px; font-weight: 700; color: var(--text2);
-    }
-    .ov-pd {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 6px 0;
-      font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; color: var(--accent);
-    }
+    .ov-grid { display: grid; grid-template-columns: 36px repeat(5, 1fr); gap: 3px; }
+    .ov-hd { text-align: center; padding: 5px 2px; font-size: 11px; font-weight: 700; color: var(--text2); }
+    .ov-pd { display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; color: var(--accent); padding: 6px 0; }
     .ov-cell {
       background: var(--bg2); border: 1px solid var(--border); border-radius: 7px;
       padding: 5px 3px; min-height: 48px;
@@ -396,51 +301,66 @@
     .ov-cell:active { transform: scale(0.95); }
     .ov-cell.empty { color: var(--text3); }
     .ov-cell .ov-name { font-size: 10px; font-weight: 700; color: var(--text); word-break: break-all; }
-    .ov-cell .ov-wk { font-size: 8px; color: var(--text3); margin-top: 1px; }
+    .ov-cell .ov-wk  { font-size: 8px; color: var(--text3); margin-top: 1px; }
     .ov-cell.has-cancel { border-color: var(--cancel); background: var(--cancel-bg); }
     .ov-cell.has-supp   { border-color: var(--supp);   background: var(--supp-bg); }
-    .ov-cell.has-change { border-color: var(--change); background: var(--change-bg); }
+    .ov-cell.has-change { border-color: var(--change);  background: var(--change-bg); }
 
-    /* Screenshot target */
-    #screenshotTarget {
-      background: var(--bg);
-      padding: 16px 14px 12px;
-    }
-    .screenshot-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .screenshot-title { font-size: 13px; font-weight: 700; }
-    .screenshot-meta { font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+    /* Screenshot */
+    #screenshotTarget { background: var(--bg); padding: 16px 14px 12px; }
+    .screenshot-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .screenshot-title  { font-size: 13px; font-weight: 700; }
+    .screenshot-meta   { font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
     .screenshot-credit { font-size: 9px; color: var(--text3); text-align: right; margin-top: 10px; font-family: 'IBM Plex Mono', monospace; }
 
     /* Settings */
     .settings-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-    .settings-section {
-      background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
-      overflow: hidden; margin-bottom: 14px; box-shadow: var(--shadow);
-    }
-    .settings-group-label {
-      font-size: 10px; font-weight: 700; color: var(--text3);
-      letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 10px 14px 6px; border-bottom: 1px solid var(--border);
-    }
-    .settings-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer;
-      transition: background 0.1s;
-    }
+    .settings-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 14px; box-shadow: var(--shadow); }
+    .settings-group-label { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 14px 6px; border-bottom: 1px solid var(--border); }
+    .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
     .settings-row:last-child { border-bottom: none; }
     .settings-row:active { background: var(--bg3); }
     .settings-row-label { font-size: 13px; font-weight: 500; }
-    .settings-row-val { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+    .settings-row-val   { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
     .settings-row-label.danger { color: var(--cancel); }
-
-    .credit-block {
-      text-align: center; padding: 20px 0 8px;
-      font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace;
-    }
+    .credit-block { text-align: center; padding: 20px 0 8px; font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
     .credit-block a { color: var(--accent); text-decoration: none; }
+
+    /* ── Calendar ── */
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .cal-nav-btn {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg3); color: var(--text2); font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background 0.1s;
+    }
+    .cal-nav-btn:active { background: var(--border); }
+    .cal-month { font-size: 14px; font-weight: 700; }
+    .cal-grid  { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px; }
+    .cal-dow   { text-align: center; font-size: 10px; font-weight: 700; color: var(--text3); padding: 3px 0; }
+    .cal-dow.sun { color: #ef4444; }
+    .cal-dow.sat { color: #3b82f6; }
+    .cal-day {
+      aspect-ratio: 1; border-radius: 7px; border: 1px solid transparent;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      transition: all 0.12s;
+    }
+    .cal-day.weekend { color: var(--text3); background: var(--bg3); cursor: default; pointer-events: none; }
+    .cal-day.cal-sun { color: #ef4444; }
+    .cal-day.cal-sat { color: #3b82f6; }
+    .cal-day.weekend.cal-sun { color: #ef9a9a; }
+    .cal-day.weekend.cal-sat { color: #90caf9; }
+    .cal-day:not(.weekend):not(:empty):hover { background: var(--bg3); }
+    .cal-day.is-today { font-weight: 700; outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 7px; }
+    .cal-day.week-a { background: var(--accent-bg); border-color: var(--week-a); color: var(--week-a); font-weight: 700; }
+    .cal-day.week-b { background: #f5f3ff; border-color: var(--week-b); color: var(--week-b); font-weight: 700; }
+    @media (prefers-color-scheme: dark) { .cal-day.week-b { background: #1e1533; } }
+    .cal-legend { display: flex; gap: 12px; font-size: 11px; color: var(--text3); margin-top: 6px; }
+    .cal-legend span { display: flex; align-items: center; gap: 4px; }
+    .cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .cal-legend-dot.a { background: var(--week-a); }
+    .cal-legend-dot.b { background: var(--week-b); }
 
     /* ── Modal ── */
     .modal-overlay {
@@ -455,12 +375,9 @@
     .modal-overlay.open { opacity: 1; pointer-events: all; }
     .modal {
       width: 100%; max-width: 600px; margin: 0 auto;
-      background: var(--glass-bg);
-      backdrop-filter: blur(32px) saturate(200%);
-      -webkit-backdrop-filter: blur(32px) saturate(200%);
-      border-radius: 24px 24px 0 0;
-      border: 1px solid var(--glass-border); border-bottom: none;
-      box-shadow: var(--glass-shadow);
+      background: var(--bg2);
+      border-radius: 20px 20px 0 0;
+      border: 1px solid var(--border); border-bottom: none;
       padding: 18px 16px;
       padding-bottom: max(18px, env(safe-area-inset-bottom));
       transform: translateY(100%);
@@ -468,17 +385,14 @@
       max-height: 92dvh; overflow-y: auto;
     }
     .modal-overlay.open .modal { transform: translateY(0); }
-    .modal-handle {
-      width: 32px; height: 4px; background: var(--border);
-      border-radius: 2px; margin: 0 auto 16px;
-    }
+    .modal-handle { width: 32px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
     .modal-heading { font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: 0.05em; text-transform: uppercase; }
     .modal-period  { font-size: 12px; color: var(--accent); font-family: 'IBM Plex Mono', monospace; margin-top: 3px; margin-bottom: 18px; }
 
     .form-group { margin-bottom: 14px; }
     .form-label { display: block; font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 5px; }
     .form-input {
-      width: 100%; background: var(--input-bg); border: 1px solid var(--border);
+      width: 100%; background: var(--bg3); border: 1px solid var(--border);
       border-radius: 9px; padding: 10px 12px;
       color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-size: 14px;
       outline: none; transition: border-color 0.15s;
@@ -493,39 +407,22 @@
       background: var(--bg3); color: var(--text2); font-size: 12px; font-weight: 500;
       cursor: pointer; transition: all 0.15s; white-space: nowrap;
     }
-    /* selected states — border + bg tint + bold */
-    .chip.sel-both   { background: var(--accent-bg); border-color: var(--accent);  color: var(--accent);  font-weight: 700; }
-    .chip.sel-a      { background: var(--accent-bg); border-color: var(--week-a);  color: var(--week-a);  font-weight: 700; }
-    .chip.sel-b      { background: #f5f3ff;          border-color: var(--week-b);  color: var(--week-b);  font-weight: 700; }
+    .chip.sel-both   { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+    .chip.sel-a      { background: var(--accent-bg); border-color: var(--week-a); color: var(--week-a); font-weight: 700; }
+    .chip.sel-b      { background: #f5f3ff;          border-color: var(--week-b); color: var(--week-b); font-weight: 700; }
     @media (prefers-color-scheme: dark) { .chip.sel-b { background: #1e1533; } }
-    .chip.sel-normal { background: var(--accent-bg); border-color: var(--accent);  color: var(--accent);  font-weight: 700; }
-    .chip.sel-cancel { background: var(--cancel-bg); border-color: var(--cancel);  color: var(--cancel);  font-weight: 700; }
-    .chip.sel-supp   { background: var(--supp-bg);   border-color: var(--supp);    color: var(--supp);    font-weight: 700; }
-    .chip.sel-change { background: var(--change-bg); border-color: var(--change);  color: var(--change);  font-weight: 700; }
+    .chip.sel-normal { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+    .chip.sel-cancel { background: var(--cancel-bg); border-color: var(--cancel); color: var(--cancel); font-weight: 700; }
+    .chip.sel-supp   { background: var(--supp-bg);   border-color: var(--supp);   color: var(--supp);   font-weight: 700; }
+    .chip.sel-change { background: var(--change-bg); border-color: var(--change); color: var(--change); font-weight: 700; }
 
-    .form-divider {
-      border: none; border-top: 1px solid var(--border);
-      margin: 4px 0 16px;
-    }
-    .btn {
-      padding: 12px; border-radius: 10px; border: none;
-      font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 700;
-      cursor: pointer; transition: opacity 0.15s;
-    }
+    .form-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0 16px; }
+    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 20px; }
+    .btn { padding: 12px; border-radius: 10px; border: none; font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
     .btn:active { opacity: 0.75; }
-    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary   { background: var(--accent); color: #fff; }
     .btn-secondary { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
-    .btn-danger { background: var(--cancel-bg); color: var(--cancel); border: 1px solid var(--cancel); grid-column: 1/-1; }
-
-    /* Toast */
-    .toast {
-      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(8px);
-      z-index: 300; background: var(--text); color: var(--bg);
-      padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 700;
-      opacity: 0; transition: all 0.25s; white-space: nowrap;
-      box-shadow: var(--shadow-md);
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .btn-danger    { background: var(--cancel-bg); color: var(--cancel); border: 1px solid var(--cancel); grid-column: 1/-1; }
 
     /* Save image btn */
     .save-img-btn {
@@ -538,44 +435,17 @@
     }
     .save-img-btn:active { background: var(--border); }
     .save-img-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
-    /* ── Week Calendar (settings) ── */
-    .cal-nav {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px;
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: calc(68px + 12px + env(safe-area-inset-bottom));
+      left: 50%; transform: translateX(-50%) translateY(8px);
+      z-index: 300; background: var(--text); color: var(--bg);
+      padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      opacity: 0; transition: all 0.25s; white-space: nowrap;
+      box-shadow: var(--shadow-md);
     }
-    .cal-nav-btn {
-      width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
-      background: var(--bg3); color: var(--text2); font-size: 16px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: background 0.1s;
-    }
-    .cal-nav-btn:active { background: var(--border); }
-    .cal-month { font-size: 14px; font-weight: 700; }
-    .cal-grid {
-      display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px;
-    }
-    .cal-dow {
-      text-align: center; font-size: 10px; font-weight: 700;
-      color: var(--text3); padding: 3px 0;
-    }
-    .cal-day {
-      aspect-ratio: 1; border-radius: 7px; border: 1px solid transparent;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 500; cursor: pointer;
-      transition: all 0.12s; position: relative;
-    }
-    .cal-day:empty { cursor: default; }
-    .cal-day.other-month { color: var(--text3); }
-    .cal-day:not(:empty):hover { background: var(--bg3); }
-    .cal-day.is-today { font-weight: 700; color: var(--accent); }
-    .cal-day.week-a { background: var(--accent-bg); border-color: var(--week-a); color: var(--week-a); font-weight: 700; }
-    .cal-day.week-b { background: #f5f3ff;          border-color: var(--week-b); color: var(--week-b); font-weight: 700; }
-    @media (prefers-color-scheme: dark) { .cal-day.week-b { background: #1e1533; } }
-    .cal-legend { display: flex; gap: 12px; font-size: 11px; color: var(--text3); margin-top: 6px; }
-    .cal-legend span { display: flex; align-items: center; gap: 4px; }
-    .cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-    .cal-legend-dot.a { background: var(--week-a); }
-    .cal-legend-dot.b { background: var(--week-b); }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -593,7 +463,7 @@
   </div>
 </header>
 
-<div class="day-tabs" id="dayTabs">
+<div class="day-tabs hidden" id="dayTabs">
   <button class="day-tab" data-day="0" onclick="selectDay(0)"><span class="day-name">月</span><span class="day-date" id="d0"></span></button>
   <button class="day-tab" data-day="1" onclick="selectDay(1)"><span class="day-name">火</span><span class="day-date" id="d1"></span></button>
   <button class="day-tab" data-day="2" onclick="selectDay(2)"><span class="day-name">水</span><span class="day-date" id="d2"></span></button>
@@ -611,13 +481,12 @@
       </div>
       <div class="next-time" id="nextTime">—</div>
     </div>
-    <div id="periodList"></div>
+    <div class="tt-scroll"><div id="ttGrid"></div></div>
   </div>
 
   <!-- Overview page -->
   <div id="page-overview" class="page">
     <div class="ov-title">週間一覧</div>
-    <!-- save image button -->
     <button class="save-img-btn" onclick="saveImage()">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       週間表を画像として保存
@@ -626,7 +495,7 @@
       <div class="screenshot-header">
         <div>
           <div class="screenshot-title" id="ssTitle">鶴岡高専 時間割</div>
-          <div class="screenshot-meta" id="ssMeta"></div>
+          <div class="screenshot-meta"  id="ssMeta"></div>
         </div>
       </div>
       <div id="weekOverview"></div>
@@ -650,7 +519,7 @@
         <div class="cal-legend">
           <span><span class="cal-legend-dot a"></span>A週</span>
           <span><span class="cal-legend-dot b"></span>B週</span>
-          <span style="margin-left:auto;font-size:10px">タップで切り替え</span>
+          <span style="margin-left:auto;font-size:10px">平日をタップで切り替え</span>
         </div>
       </div>
     </div>
@@ -665,23 +534,14 @@
 
     <div class="settings-section">
       <div class="settings-group-label">データ管理</div>
-      <div class="settings-row" onclick="exportData()">
-        <span class="settings-row-label">JSONでエクスポート</span>
-        <span class="settings-row-val">→</span>
-      </div>
-      <div class="settings-row" onclick="importData()">
-        <span class="settings-row-label">JSONをインポート</span>
-        <span class="settings-row-val">→</span>
-      </div>
-      <div class="settings-row" onclick="resetData()">
-        <span class="settings-row-label danger">データをリセット</span>
-        <span class="settings-row-val">→</span>
-      </div>
+      <div class="settings-row" onclick="exportData()"><span class="settings-row-label">JSONでエクスポート</span><span class="settings-row-val">→</span></div>
+      <div class="settings-row" onclick="importData()"><span class="settings-row-label">JSONをインポート</span><span class="settings-row-val">→</span></div>
+      <div class="settings-row" onclick="resetData()"><span class="settings-row-label danger">データをリセット</span><span class="settings-row-val">→</span></div>
     </div>
 
     <div class="settings-section">
       <div class="settings-group-label">アプリ情報</div>
-      <div class="settings-row"><span class="settings-row-label">バージョン</span><span class="settings-row-val">1.1.0</span></div>
+      <div class="settings-row"><span class="settings-row-label">バージョン</span><span class="settings-row-val">1.2.0</span></div>
       <div class="settings-row"><span class="settings-row-label">対象</span><span class="settings-row-val">鶴岡工業高等専門学校</span></div>
     </div>
 
@@ -741,10 +601,10 @@
     <div class="form-group">
       <label class="form-label">状態</label>
       <div class="chip-row">
-        <div class="chip" data-status="normal"  onclick="pickStatus('normal')">📚 通常</div>
-        <div class="chip" data-status="cancel"  onclick="pickStatus('cancel')">❌ 休講</div>
-        <div class="chip" data-status="supp"    onclick="pickStatus('supp')">📝 補講</div>
-        <div class="chip" data-status="change"  onclick="pickStatus('change')">🔄 変更</div>
+        <div class="chip" data-status="normal" onclick="pickStatus('normal')">📚 通常</div>
+        <div class="chip" data-status="cancel" onclick="pickStatus('cancel')">❌ 休講</div>
+        <div class="chip" data-status="supp"   onclick="pickStatus('supp')">📝 補講</div>
+        <div class="chip" data-status="change" onclick="pickStatus('change')">🔄 変更</div>
       </div>
     </div>
     <div class="form-group" id="noteGroup" style="display:none">
@@ -763,7 +623,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── Constants ───
 const DAYS = ['月','火','水','木','金'];
 const PERIODS = [
   { n:1, t:'8:40\n10:10', start:[8,40],  end:[10,10] },
@@ -772,198 +631,166 @@ const PERIODS = [
   { n:4, t:'14:30\n16:00',start:[14,30], end:[16,0]  },
 ];
 
-// ─── State ───
-let S = {
-  week: 'A',
-  day: 0,
-  page: 'timetable',
-  // tt["d-p-w"] = {subject,teacher,room,weekType}
-  // w can be 'both','A','B'
-  // A-week-only slot:  tt["d-p-A"]
-  // B-week-only slot:  tt["d-p-B"]
-  // same both weeks:   tt["d-p-both"]
-  // different per week: tt["d-p-A"] AND tt["d-p-B"] (both present, no 'both' key)
-  tt: {},
-  ov: {},           // "YYYY-MM-DD-p" → {status,note}
-  weekMap: {},      // "YYYY-MM-DD" → 'A'|'B'
-};
+let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{} };
 let modalDay=0, modalPeriod=0, selWeek='both', selStatus='normal';
 let calYear=0, calMonth=0;
 
-// ─── Storage ───
-function load() {
+// ── Storage ──
+function load(){
   try {
-    const d = JSON.parse(localStorage.getItem('tt-v4') || '{}');
-    S.tt      = d.tt      || {};
-    S.ov      = d.ov      || {};
-    S.weekMap = d.weekMap || {};
-    S.week    = d.week    || 'A';
+    const d=JSON.parse(localStorage.getItem('tt-v4')||'{}');
+    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A';
   } catch(e){}
 }
-function save() {
-  localStorage.setItem('tt-v4', JSON.stringify({
-    tt: S.tt, ov: S.ov, weekMap: S.weekMap, week: S.week
-  }));
+function save(){
+  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week}));
 }
 
-// ─── Keys ───
+// ── Keys ──
 function ttKey(d,p,w){ return `${d}-${p}-${w}`; }
-
-function dateOfDay(dayIdx) {
-  const today = new Date();
-  const dow = today.getDay();
-  const mon = new Date(today);
-  mon.setDate(today.getDate() + (dow===0 ? -6 : 1-dow));
-  const t = new Date(mon); t.setDate(mon.getDate()+dayIdx);
-  return t;
+function dateOfDay(di){
+  const today=new Date(), dow=today.getDay();
+  const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow));
+  const t=new Date(mon); t.setDate(mon.getDate()+di); return t;
 }
-function dateStr(dt) {
+function dateStr(dt){
   return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
 }
-function ovKey(d,p){ return `${dateStr(dateOfDay(d))}-${p}`; }
-
-// ─── Week for a specific date ───
-function weekForDate(dt) {
-  const ds = dateStr(dt);
-  if (S.weekMap[ds]) return S.weekMap[ds];
-  return S.week; // fallback to current toggle
+function weekForDate(dt){
+  const ds=dateStr(dt); return S.weekMap[ds]||S.week;
 }
-
-// ─── Get entry (respects per-date week) ───
 function getEntry(d,p){
-  const w = weekForDate(dateOfDay(d));
-  return S.tt[ttKey(d,p,w)] || S.tt[ttKey(d,p,'both')] || null;
+  const w=weekForDate(dateOfDay(d));
+  return S.tt[ttKey(d,p,w)]||S.tt[ttKey(d,p,'both')]||null;
 }
+function currentDayWeek(){ return weekForDate(dateOfDay(S.day)); }
 
-// ─── What week applies to currently selected day ───
-function currentDayWeek() {
-  return weekForDate(dateOfDay(S.day));
-}
-
-// ─── Week toggle ───
+// ── Week toggle ──
 function setWeek(w){
-  S.week = w;
-  document.getElementById('weekA').className = 'week-btn' + (w==='A'?' active-a':'');
-  document.getElementById('weekB').className = 'week-btn' + (w==='B'?' active-b':'');
+  S.week=w;
+  document.getElementById('weekA').className='week-btn'+(w==='A'?' active-a':'');
+  document.getElementById('weekB').className='week-btn'+(w==='B'?' active-b':'');
   save(); renderTimetable(); renderOverview();
 }
 
-// ─── Day ───
+// ── Day ──
 function selectDay(d){
-  S.day = d;
+  S.day=d;
   document.querySelectorAll('.day-tab').forEach((t,i)=>t.classList.toggle('active',i===d));
   renderTimetable();
 }
-
 function setupDates(){
-  const today = new Date();
-  const dow = today.getDay();
-  const mon = new Date(today);
-  mon.setDate(today.getDate() + (dow===0 ? -6 : 1-dow));
+  const today=new Date(), dow=today.getDay();
+  const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow));
   for(let i=0;i<5;i++){
     const d=new Date(mon); d.setDate(mon.getDate()+i);
-    document.getElementById(`d${i}`).textContent = `${d.getMonth()+1}/${d.getDate()}`;
-    if(i === (dow===0?6:dow-1)){
-      document.querySelectorAll('.day-tab')[i].classList.add('today');
-    }
+    document.getElementById(`d${i}`).textContent=`${d.getMonth()+1}/${d.getDate()}`;
+    if(i===(dow===0?6:dow-1)) document.querySelectorAll('.day-tab')[i].classList.add('today');
   }
-  if(dow>=1&&dow<=5){ S.day=dow-1; }
+  if(dow>=1&&dow<=5) S.day=dow-1;
   selectDay(S.day);
 }
 
-// ─── Render Timetable ───
+// ── Render Timetable (5-column grid) ──
 function renderTimetable(){
-  const list = document.getElementById('periodList');
-  list.innerHTML = '';
-  const effectiveWeek = currentDayWeek();
+  const container=document.getElementById('ttGrid');
+  container.innerHTML='';
+  const grid=document.createElement('div');
+  grid.className='tt-grid';
 
-  PERIODS.forEach((p,i)=>{
-    const entry = getEntry(S.day,i);
-    const dayDate = dateStr(dateOfDay(S.day));
-    const ov    = S.ov[`${dayDate}-${i}`] || null;
+  const today=new Date(), dow=today.getDay();
+  const todayDayIdx=dow>=1&&dow<=5?dow-1:-1;
 
-    // Also check if there's an entry for the OTHER week (to show split info)
-    const otherW = effectiveWeek==='A' ? 'B' : 'A';
-    const hasOther = !!S.tt[ttKey(S.day,i,otherW)];
+  // Header row: empty + Mon-Fri
+  grid.innerHTML+=`<div></div>`;
+  for(let di=0;di<5;di++){
+    const d=dateOfDay(di);
+    const isToday=(di===todayDayIdx);
+    grid.innerHTML+=`<div class="tt-col-hd${isToday?' today-hd':''}">${DAYS[di]}<br><span style="font-size:9px;font-weight:400;font-family:'IBM Plex Mono',monospace">${d.getMonth()+1}/${d.getDate()}</span></div>`;
+  }
 
-    const card  = document.createElement('div');
-    card.className = 'period-card' + (ov ? ` has-${ov.status}` : '');
-    card.onclick   = ()=> openModal(S.day,i);
+  // Period rows
+  for(let pi=0;pi<PERIODS.length;pi++){
+    const p=PERIODS[pi];
+    grid.innerHTML+=`<div class="tt-row-label">${p.n}<span style="font-size:8px;color:var(--text3);display:block">限</span></div>`;
 
-    const left = document.createElement('div');
-    left.className = 'period-num';
-    left.innerHTML = `<span class="n">${p.n}</span><span class="l">限</span><span class="t">${p.t.replace('\n','<br>')}</span>`;
+    for(let di=0;di<5;di++){
+      const entry=getEntry(di,pi);
+      const dayDate=dateStr(dateOfDay(di));
+      const ov=S.ov[`${dayDate}-${pi}`]||null;
 
-    const right = document.createElement('div');
-    right.className = 'period-body';
-    if(!entry){
-      right.innerHTML = `<div class="empty-hint"><div class="empty-plus">+</div><span>タップして登録</span></div>`;
-    } else {
-      const wt = entry.weekType||'both';
-      const wBadge = wt==='A' ? `<span class="badge badge-a">A週</span>`
-                   : wt==='B' ? `<span class="badge badge-b">B週</span>`
-                               : `<span class="badge badge-both">毎週</span>`;
-      let sBadge='', note='';
-      if(ov){
-        if(ov.status==='cancel')  { sBadge=`<span class="badge badge-cancel">休講</span>`; if(ov.note) note=`<div class="subj-note note-cancel">${ov.note}</div>`; }
-        if(ov.status==='supp')    { sBadge=`<span class="badge badge-supp">補講</span>`;   if(ov.note) note=`<div class="subj-note note-supp">${ov.note}</div>`; }
-        if(ov.status==='change')  { sBadge=`<span class="badge badge-change">変更</span>`; if(ov.note) note=`<div class="subj-note note-change">${ov.note}</div>`; }
+      let cls='tt-cell';
+      if(ov) cls+=` has-${ov.status}`;
+      if(di===S.day) cls+=' selected';
+
+      const cell=document.createElement('div');
+      cell.className=cls;
+      cell.onclick=()=>{ selectDay(di); openModal(di,pi); };
+
+      if(!entry){
+        cell.innerHTML=`<div class="tt-cell-empty">+</div>`;
+      } else {
+        const wt=entry.weekType||'both';
+        let badge='';
+        if(ov){
+          if(ov.status==='cancel') badge=`<span class="tt-badge tt-badge-cancel">休講</span>`;
+          else if(ov.status==='supp')  badge=`<span class="tt-badge tt-badge-supp">補講</span>`;
+          else if(ov.status==='change') badge=`<span class="tt-badge tt-badge-change">変更</span>`;
+        } else if(wt==='A'){
+          badge=`<span class="tt-badge tt-badge-a">A</span>`;
+        } else if(wt==='B'){
+          badge=`<span class="tt-badge tt-badge-b">B</span>`;
+        }
+        cell.innerHTML=`
+          <div class="tt-subj">${entry.subject}</div>
+          ${entry.teacher?`<div class="tt-tchr">${entry.teacher}</div>`:''}
+          ${badge}`;
       }
-      right.innerHTML = `
-        <div class="subj-row">
-          <div class="subj-name">${entry.subject}</div>
-          <div class="badges">${wBadge}${sBadge}</div>
-        </div>
-        <div class="subj-meta">
-          ${entry.teacher?`<span>👤 ${entry.teacher}</span>`:''}
-          ${entry.room   ?`<span>📍 ${entry.room}</span>`:''}
-        </div>${note}`;
+      grid.appendChild(cell);
     }
-    card.appendChild(left); card.appendChild(right);
-    list.appendChild(card);
-  });
+  }
+
+  container.appendChild(grid);
   updateNextStrip();
 }
 
 function updateNextStrip(){
-  const strip = document.getElementById('nextStrip');
-  const now   = new Date();
-  const dow   = now.getDay();
-  if(dow<1||dow>5||S.day!==dow-1){ strip.classList.remove('visible'); return; }
-  const hm = now.getHours()*60+now.getMinutes();
+  const strip=document.getElementById('nextStrip');
+  const now=new Date(), dow=now.getDay();
+  if(dow<1||dow>5){ strip.classList.remove('visible'); return; }
+  const hm=now.getHours()*60+now.getMinutes();
+  const todayDayIdx=dow-1;
   let found=null;
   for(let i=0;i<PERIODS.length;i++){
     const p=PERIODS[i];
-    if(hm < p.end[0]*60+p.end[1]){
-      const entry=getEntry(S.day,i);
-      const ov=S.ov[`${dateStr(dateOfDay(S.day))}-${i}`];
-      if(entry && !(ov&&ov.status==='cancel')){ found={entry,p,i}; break; }
+    if(hm<p.end[0]*60+p.end[1]){
+      const entry=getEntry(todayDayIdx,i);
+      const ov=S.ov[`${dateStr(dateOfDay(todayDayIdx))}-${i}`];
+      if(entry&&!(ov&&ov.status==='cancel')){ found={entry,p}; break; }
     }
   }
   if(!found){ strip.classList.remove('visible'); return; }
   strip.classList.add('visible');
-  document.getElementById('nextName').textContent = found.entry.subject;
+  document.getElementById('nextName').textContent=found.entry.subject;
   const startMin=found.p.start[0]*60+found.p.start[1];
-  const endMin  =found.p.end[0]*60+found.p.end[1];
-  if(hm<startMin) document.getElementById('nextTime').textContent=`${startMin-hm}分後`;
-  else            document.getElementById('nextTime').textContent=`残${endMin-hm}分`;
+  const endMin=found.p.end[0]*60+found.p.end[1];
+  document.getElementById('nextTime').textContent=
+    hm<startMin?`${startMin-hm}分後`:`残${endMin-hm}分`;
 }
 
-// ─── Overview ───
+// ── Overview ──
 function renderOverview(){
   const now=new Date();
   document.getElementById('ssTitle').textContent=`鶴岡高専 時間割 (${S.week}週)`;
   document.getElementById('ssMeta').textContent=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} 生成`;
-
   const container=document.getElementById('weekOverview');
   container.innerHTML='';
-  const grid=document.createElement('div');
-  grid.className='ov-grid';
+  const grid=document.createElement('div'); grid.className='ov-grid';
   grid.innerHTML=`<div class="ov-hd"></div>${DAYS.map(d=>`<div class="ov-hd">${d}</div>`).join('')}`;
   PERIODS.forEach((p,pi)=>{
     grid.innerHTML+=`<div class="ov-pd">${p.n}</div>`;
     for(let di=0;di<5;di++){
-      const w = weekForDate(dateOfDay(di));
+      const w=weekForDate(dateOfDay(di));
       const entry=S.tt[ttKey(di,pi,w)]||S.tt[ttKey(di,pi,'both')]||null;
       const ov=S.ov[`${dateStr(dateOfDay(di))}-${pi}`];
       let cls='ov-cell'+(entry?'':' empty')+(ov?` has-${ov.status}`:'');
@@ -975,73 +802,58 @@ function renderOverview(){
   });
   container.appendChild(grid);
 }
-
 function jumpToSlot(d,p){
   S.day=d; selectDay(d); showPage('timetable');
   setTimeout(()=>openModal(d,p),120);
 }
 
-// ─── Save as Image ───
+// ── Save Image ──
 async function saveImage(){
-  const target=document.getElementById('screenshotTarget');
   showToast('画像を生成中…');
   try {
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const canvas = await html2canvas(target, {
-      backgroundColor: isDark ? '#1c1c1c' : '#ffffff',
-      scale: 2, useCORS: true, logging: false,
+    const isDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const canvas=await html2canvas(document.getElementById('screenshotTarget'),{
+      backgroundColor:isDark?'#1c1c1c':'#ffffff',scale:2,useCORS:true,logging:false
     });
-    const link=document.createElement('a');
+    const a=document.createElement('a');
     const now=new Date();
-    link.download=`timetable_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.png`;
-    link.href=canvas.toDataURL('image/png');
-    link.click();
+    a.download=`timetable_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.png`;
+    a.href=canvas.toDataURL('image/png'); a.click();
     showToast('画像を保存しました ✓');
-  } catch(e){ showToast('保存に失敗しました'); console.error(e); }
+  } catch(e){ showToast('保存に失敗しました'); }
 }
 
-// ─── Modal ───
+// ── Modal ──
 function openModal(d,p){
   modalDay=d; modalPeriod=p;
   const pd=PERIODS[p];
-  const effectiveWeek = weekForDate(dateOfDay(d));
-  document.getElementById('modalPeriodInfo').textContent=
-    `${DAYS[d]}曜日 ${pd.n}限 — 現在 ${effectiveWeek}週`;
+  const ew=weekForDate(dateOfDay(d));
+  document.getElementById('modalPeriodInfo').textContent=`${DAYS[d]}曜日 ${pd.n}限 — 現在 ${ew}週`;
 
-  // Load the entry for the CURRENT effective week, or 'both' fallback
-  const entryW    = S.tt[ttKey(d,p,effectiveWeek)] || null;
-  const entryBoth = S.tt[ttKey(d,p,'both')]        || null;
-  const entry = entryW || entryBoth;
+  const entryW=S.tt[ttKey(d,p,ew)]||null;
+  const entryBoth=S.tt[ttKey(d,p,'both')]||null;
+  const entry=entryW||entryBoth;
+  selWeek=entryW?ew:entryBoth?'both':'both';
 
-  if (entryW) selWeek = effectiveWeek;
-  else if (entryBoth) selWeek = 'both';
-  else selWeek = 'both';
+  document.getElementById('inputSubject').value=entry?.subject||'';
+  document.getElementById('inputTeacher').value=entry?.teacher||'';
+  document.getElementById('inputRoom').value=entry?.room||'';
 
-  document.getElementById('inputSubject').value = entry?.subject || '';
-  document.getElementById('inputTeacher').value = entry?.teacher || '';
-  document.getElementById('inputRoom').value    = entry?.room    || '';
+  const hasAny=!!(S.tt[ttKey(d,p,'A')]||S.tt[ttKey(d,p,'B')]||S.tt[ttKey(d,p,'both')]);
+  document.getElementById('deleteBtn').style.display=hasAny?'block':'none';
 
-  const hasAnyEntry = !!(S.tt[ttKey(d,p,'A')] || S.tt[ttKey(d,p,'B')] || S.tt[ttKey(d,p,'both')]);
-  document.getElementById('deleteBtn').style.display = hasAnyEntry ? 'block' : 'none';
+  const defaultDate=dateStr(dateOfDay(d));
+  document.getElementById('inputOverrideDate').value=defaultDate;
+  const ov=S.ov[`${defaultDate}-${p}`]||null;
+  selStatus=ov?ov.status:'normal';
+  document.getElementById('inputNote').value=ov?ov.note||'':'';
 
-  // Default override date = the day currently shown
-  const defaultDate = dateStr(dateOfDay(d));
-  document.getElementById('inputOverrideDate').value = defaultDate;
-
-  // Load existing override for that date
-  const ok = `${defaultDate}-${p}`;
-  const ov = S.ov[ok] || null;
-  selStatus = ov ? ov.status : 'normal';
-  document.getElementById('inputNote').value = ov ? ov.note||'' : '';
-
-  // When date changes, reload override status
-  document.getElementById('inputOverrideDate').onchange = () => {
-    const ds = document.getElementById('inputOverrideDate').value;
+  document.getElementById('inputOverrideDate').onchange=()=>{
+    const ds=document.getElementById('inputOverrideDate').value;
     if(!ds){ selStatus='normal'; document.getElementById('inputNote').value=''; updateChips(); updateNoteVis(); return; }
-    const k = `${ds}-${p}`;
-    const o = S.ov[k] || null;
-    selStatus = o ? o.status : 'normal';
-    document.getElementById('inputNote').value = o ? o.note||'' : '';
+    const o=S.ov[`${ds}-${p}`]||null;
+    selStatus=o?o.status:'normal';
+    document.getElementById('inputNote').value=o?o.note||'':'';
     updateChips(); updateNoteVis();
   };
 
@@ -1050,34 +862,27 @@ function openModal(d,p){
 }
 function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
 function handleOverlayClick(e){ if(e.target===document.getElementById('modalOverlay')) closeModal(); }
-
 function pickWeek(w){ selWeek=w; updateChips(); }
 function pickStatus(s){ selStatus=s; updateChips(); updateNoteVis(); }
-
 function updateChips(){
   document.querySelectorAll('.chip[data-week]').forEach(c=>{
-    const w = c.dataset.week;
-    c.className = 'chip' + (w === selWeek ? ` sel-${w}` : '');
+    c.className='chip'+(c.dataset.week===selWeek?` sel-${c.dataset.week}`:'');
   });
   document.querySelectorAll('.chip[data-status]').forEach(c=>{
-    const s = c.dataset.status;
-    c.className = 'chip' + (s === selStatus ? ` sel-${s}` : '');
+    c.className='chip'+(c.dataset.status===selStatus?` sel-${c.dataset.status}`:'');
   });
 }
 function updateNoteVis(){
-  const ng=document.getElementById('noteGroup');
-  ng.style.display=(selStatus!=='normal')?'block':'none';
+  document.getElementById('noteGroup').style.display=selStatus!=='normal'?'block':'none';
   const ph={cancel:'例：先生出張のため',supp:'例：第3体育館で実施',change:'例：教室変更→13F'};
   document.getElementById('inputNote').placeholder=ph[selStatus]||'';
 }
-
 function saveEntry(){
   const subject=document.getElementById('inputSubject').value.trim();
   const teacher=document.getElementById('inputTeacher').value.trim();
-  const room   =document.getElementById('inputRoom').value.trim();
-  const note   =document.getElementById('inputNote').value.trim();
-  const ovDate =document.getElementById('inputOverrideDate').value; // "YYYY-MM-DD"
-
+  const room=document.getElementById('inputRoom').value.trim();
+  const note=document.getElementById('inputNote').value.trim();
+  const ovDate=document.getElementById('inputOverrideDate').value;
   if(subject){
     if(selWeek==='both'){
       delete S.tt[ttKey(modalDay,modalPeriod,'A')];
@@ -1088,99 +893,93 @@ function saveEntry(){
       S.tt[ttKey(modalDay,modalPeriod,selWeek)]={subject,teacher,room,weekType:selWeek};
     }
   }
-
-  // Override keyed by the specific date chosen in the picker
   if(ovDate){
     const ok=`${ovDate}-${modalPeriod}`;
     if(selStatus!=='normal') S.ov[ok]={status:selStatus,note};
     else delete S.ov[ok];
   }
-
   save(); closeModal(); renderTimetable(); renderOverview();
   showToast('保存しました ✓');
 }
-
 function deleteEntry(){
   if(!confirm('この授業を削除しますか？')) return;
   ['both','A','B'].forEach(w=>delete S.tt[ttKey(modalDay,modalPeriod,w)]);
-  // Remove all date-specific overrides for this slot
-  const prefix = `-${modalPeriod}`;
-  Object.keys(S.ov).forEach(k=>{ if(k.endsWith(prefix) && k.split('-')[0]===String(modalDay)) delete S.ov[k]; });
-  // More precisely: remove any override for this day-index across all dates in current week
-  for(let i=0;i<5;i++){
-    if(i===modalDay){
-      delete S.ov[`${dateStr(dateOfDay(i))}-${modalPeriod}`];
-    }
-  }
+  delete S.ov[`${dateStr(dateOfDay(modalDay))}-${modalPeriod}`];
   save(); closeModal(); renderTimetable(); renderOverview();
   showToast('削除しました');
 }
 
-// ─── Pages ───
+// ── Pages ──
 function showPage(p){
   S.page=p;
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.getElementById(`page-${p}`).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(`nav-${p}`).classList.add('active');
-  document.getElementById('dayTabs').classList.toggle('hidden', p !== 'timetable');
-  document.getElementById('weekToggle').classList.toggle('hidden', p === 'settings');
+  document.getElementById('dayTabs').classList.add('hidden');
+  document.getElementById('weekToggle').classList.toggle('hidden',p==='settings');
   if(p==='overview') renderOverview();
   if(p==='settings') renderCalendar();
 }
 
-// ─── Week Calendar ───
-function initCal(){
-  const now=new Date(); calYear=now.getFullYear(); calMonth=now.getMonth();
+// ── Calendar (Sun-start, weekends disabled) ──
+function initCal(){ const n=new Date(); calYear=n.getFullYear(); calMonth=n.getMonth(); }
+function calMove(dir){
+  calMonth+=dir;
+  if(calMonth>11){ calMonth=0; calYear++; }
+  if(calMonth<0) { calMonth=11; calYear--; }
+  renderCalendar();
 }
-function calMove(dir){ calMonth+=dir; if(calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
-
 function renderCalendar(){
   const label=document.getElementById('calMonthLabel');
-  const grid =document.getElementById('calGrid');
+  const grid=document.getElementById('calGrid');
   if(!label||!grid) return;
   label.textContent=`${calYear}年${calMonth+1}月`;
   grid.innerHTML='';
 
-  // Day of week headers (Mon–Sun)
-  ['月','火','水','木','金','土','日'].forEach(d=>{
+  // Sun-start headers
+  const dows=[{l:'日',c:'sun'},{l:'月',c:''},{l:'火',c:''},{l:'水',c:''},{l:'木',c:''},{l:'金',c:''},{l:'土',c:'sat'}];
+  dows.forEach(({l,c})=>{
     const el=document.createElement('div');
-    el.className='cal-dow'; el.textContent=d; grid.appendChild(el);
+    el.className='cal-dow'+(c?' '+c:''); el.textContent=l; grid.appendChild(el);
   });
 
   const today=new Date(); today.setHours(0,0,0,0);
   const first=new Date(calYear,calMonth,1);
-  // Monday=0 offset
-  let startOffset = (first.getDay()+6)%7; // Mon=0
+  const startOffset=first.getDay(); // 0=Sun
   for(let i=0;i<startOffset;i++){
     const el=document.createElement('div'); el.className='cal-day'; grid.appendChild(el);
   }
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
   for(let d=1;d<=daysInMonth;d++){
     const dt=new Date(calYear,calMonth,d);
+    const dow=dt.getDay(); // 0=Sun,6=Sat
+    const isWeekend=(dow===0||dow===6);
     const ds=dateStr(dt);
     const el=document.createElement('div');
-    el.className='cal-day';
+    let cls='cal-day';
+    if(isWeekend) cls+=' weekend';
+    if(dow===0) cls+=' cal-sun';
+    if(dow===6) cls+=' cal-sat';
+    if(!isWeekend){
+      const w=S.weekMap[ds];
+      if(w==='A') cls+=' week-a';
+      else if(w==='B') cls+=' week-b';
+    }
+    if(dt.getTime()===today.getTime()) cls+=' is-today';
+    el.className=cls;
     el.textContent=d;
-    const w=S.weekMap[ds];
-    if(w==='A') el.classList.add('week-a');
-    else if(w==='B') el.classList.add('week-b');
-    if(dt.getTime()===today.getTime()) el.classList.add('is-today');
-    // Weekends: no click action needed but still show labels
-    el.onclick=()=>toggleDayWeek(ds,el);
+    if(!isWeekend) el.onclick=()=>toggleDayWeek(ds);
     grid.appendChild(el);
   }
 }
-
-function toggleDayWeek(ds,el){
+function toggleDayWeek(ds){
   const cur=S.weekMap[ds];
-  if(!cur)       S.weekMap[ds]='A';
+  if(!cur) S.weekMap[ds]='A';
   else if(cur==='A') S.weekMap[ds]='B';
-  else           delete S.weekMap[ds];
-  save();
-  renderCalendar();
-  // Also refresh timetable if this date is currently shown
-  const today=new Date(); const dow=today.getDay();
+  else delete S.weekMap[ds];
+  save(); renderCalendar();
+  const today=new Date(), dow=today.getDay();
   const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow));
   for(let i=0;i<5;i++){
     const d=new Date(mon); d.setDate(mon.getDate()+i);
@@ -1188,19 +987,18 @@ function toggleDayWeek(ds,el){
   }
 }
 
-// ─── Toast ───
+// ── Toast ──
 function showToast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg; el.classList.add('show');
   setTimeout(()=>el.classList.remove('show'),2200);
 }
 
-// ─── Settings actions ───
+// ── Settings ──
 function resetData(){
   if(!confirm('すべてのデータをリセットしますか？')) return;
   S.tt={}; S.ov={}; S.weekMap={};
-  save(); renderTimetable(); renderOverview(); renderCalendar();
-  showToast('リセットしました');
+  save(); renderTimetable(); renderOverview(); renderCalendar(); showToast('リセットしました');
 }
 function exportData(){
   const blob=new Blob([JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap},null,2)],{type:'application/json'});
@@ -1215,8 +1013,7 @@ function importData(){
       try{
         const d=JSON.parse(ev.target.result);
         S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{};
-        save(); renderTimetable(); renderOverview(); renderCalendar();
-        showToast('インポートしました ✓');
+        save(); renderTimetable(); renderOverview(); renderCalendar(); showToast('インポートしました ✓');
       }catch{ showToast('ファイルが無効です'); }
     };
     r.readAsText(e.target.files[0]);
@@ -1224,23 +1021,11 @@ function importData(){
   inp.click();
 }
 
-// ─── Measure header height for sticky day-tabs ───
-function updateHeaderHeight(){
-  const h = document.querySelector('header').getBoundingClientRect().height;
-  document.documentElement.style.setProperty('--header-h', h + 'px');
-}
-
-// ─── Init ───
-load();
-initCal();
-setWeek(S.week);
-setupDates();
-updateHeaderHeight();
-window.addEventListener('resize', updateHeaderHeight);
+// ── Init ──
+load(); initCal(); setWeek(S.week); setupDates();
 setInterval(updateNextStrip,60000);
-
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 </script>
 </body>
