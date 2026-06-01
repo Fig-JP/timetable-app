@@ -316,6 +316,7 @@
     /* Settings */
     .settings-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
     .settings-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 14px; box-shadow: var(--shadow); }
+    .settings-section.cal-section { overflow: visible; }
     .settings-group-label { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 14px 6px; border-bottom: 1px solid var(--border); }
     .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
     .settings-row:last-child { border-bottom: none; }
@@ -507,7 +508,7 @@
   <div id="page-settings" class="page">
     <div class="settings-title">設定</div>
 
-    <div class="settings-section">
+    <div class="settings-section cal-section">
       <div class="settings-group-label">A週 / B週 カレンダー設定</div>
       <div style="padding:12px 14px">
         <div class="cal-nav">
@@ -913,13 +914,14 @@ function deleteEntry(){
 function showPage(p){
   S.page=p;
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
-  document.getElementById(`page-${p}`).classList.add('active');
+  document.getElementById('page-'+p).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(`nav-${p}`).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
   document.getElementById('dayTabs').classList.add('hidden');
   document.getElementById('weekToggle').classList.toggle('hidden',p==='settings');
   if(p==='overview') renderOverview();
-  if(p==='settings') renderCalendar();
+  // render calendar AFTER the page is visible so the grid has width
+  if(p==='settings') requestAnimationFrame(function(){ renderCalendar(); });
 }
 
 // ── Calendar (Sun-start, weekends disabled) ──
@@ -994,6 +996,23 @@ function toggleDayWeek(ds){
   }
 }
 
+// ── Auto-expire overrides (休講/補講 are date-specific, clean up past dates) ──
+function expireOldOverrides(){
+  var todayStr = dateStr(new Date());
+  Object.keys(S.ov).forEach(function(key){
+    // key format: "YYYY-MM-DD-periodIndex"
+    var parts = key.split('-');
+    // parts = ["YYYY","MM","DD","pi"]
+    if(parts.length >= 4){
+      var datePartStr = parts[0]+'-'+parts[1]+'-'+parts[2];
+      if(datePartStr < todayStr){
+        delete S.ov[key];
+      }
+    }
+  });
+  save();
+}
+
 // ── Toast ──
 function showToast(msg){
   const el=document.getElementById('toast');
@@ -1031,8 +1050,11 @@ function importData(){
 // ── Init ──
 document.addEventListener('DOMContentLoaded', function(){
   load(); initCal(); setWeek(S.week); setupDates();
-  renderCalendar();
+  // Don't call renderCalendar here - settings page is hidden, grid has no width.
+  // It will be called via showPage('settings') -> requestAnimationFrame.
   setInterval(updateNextStrip, 60000);
+  // Auto-expire overrides older than today
+  expireOldOverrides();
   if('serviceWorker' in navigator){
     window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
   }
