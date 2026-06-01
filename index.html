@@ -554,7 +554,7 @@
       <div class="settings-row"><span class="settings-row-label">対象</span><span class="settings-row-val">鶴岡工業高等専門学校</span></div>
     </div>
 
-    <div class="credit-block">Created by <a href="https://fig-jp.github.io/website/about">Fig</a></div>
+    <div class="credit-block">Created by <a href="#">Fig</a></div>
   </div>
 </main>
 
@@ -883,8 +883,7 @@ function renderOverview(){
   PERIODS.forEach((p,pi)=>{
     grid.innerHTML+=`<div class="ov-pd">${p.n}</div>`;
     for(let di=0;di<5;di++){
-      const w=weekForDate(dateOfDay(di));
-      const entry=S.tt[ttKey(di,pi,w)]||S.tt[ttKey(di,pi,'both')]||null;
+      const entry=S.tt[ttKey(di,pi,S.week)]||S.tt[ttKey(di,pi,'both')]||null;
       const ov=S.ov[`${dateStr(dateOfDay(di))}-${pi}`];
       let cls='ov-cell'+(entry?'':' empty')+(ov?` has-${ov.status}`:'');
       const wl=entry?(entry.weekType==='A'?'<span class="ov-wk">A週</span>':entry.weekType==='B'?'<span class="ov-wk">B週</span>':''):'';
