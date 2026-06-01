@@ -1011,7 +1011,7 @@ function showPage(p){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('nav-'+p).classList.add('active');
   document.getElementById('dayTabs').classList.toggle('hidden', p!=='timetable');
-  document.getElementById('weekToggle').classList.toggle('hidden',p==='settings');
+  document.getElementById('weekToggle').classList.toggle('hidden',p!=='overview');
   if(p==='timetable') renderTimetable();
   if(p==='overview') renderOverview();
   if(p==='settings') requestAnimationFrame(function(){ renderCalendar(); });
@@ -1120,9 +1120,11 @@ function resetData(){
   save(); renderTimetable(); renderOverview(); renderCalendar(); showToast('リセットしました');
 }
 function exportData(){
+  const name=(prompt('保存ファイル名を入力（拡張子なし）','tsuruoka-timetable')||'').trim();
+  if(!name) return;
   const blob=new Blob([JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='tsuruoka-timetable.json'; a.click();
+  a.download=name+'.json'; a.click();
 }
 function importData(){
   const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
