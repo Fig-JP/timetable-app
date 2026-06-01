@@ -341,7 +341,7 @@
     .cal-dow.sun { color: #ef4444; }
     .cal-dow.sat { color: #3b82f6; }
     .cal-day {
-      aspect-ratio: 1; border-radius: 7px; border: 1px solid transparent;
+      height: 36px; border-radius: 7px; border: 1px solid transparent;
       display: flex; align-items: center; justify-content: center;
       font-size: 12px; font-weight: 500; cursor: pointer;
       transition: all 0.12s;
@@ -1023,6 +1023,7 @@ function importData(){
 
 // ── Init ──
 load(); initCal(); setWeek(S.week); setupDates();
+renderCalendar();
 setInterval(updateNextStrip,60000);
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
