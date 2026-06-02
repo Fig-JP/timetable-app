@@ -413,7 +413,8 @@
       cursor: pointer; transition: all 0.15s; white-space: nowrap;
     }
     .chip.sel-both   { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); font-weight: 700; }
-    .chip.sel-a      { background: var(--accent-bg); border-color: var(--week-a); color: var(--week-a); font-weight: 700; }
+    .chip.sel-change { background: var(--change-bg); border-color: var(--change); color: var(--change); font-weight: 700; }
+    .chip.sel-a      { background: var(--accent-bg);  border-color: var(--week-a); color: var(--week-a); font-weight: 700; }
     .chip.sel-b      { background: #f5f3ff;          border-color: var(--week-b); color: var(--week-b); font-weight: 700; }
     @media (prefers-color-scheme: dark) { .chip.sel-b { background: #1e1533; } }
     .chip.sel-normal { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); font-weight: 700; }
@@ -441,7 +442,23 @@
     .save-img-btn:active { background: var(--border); }
     .save-img-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
 
-    /* Toast */
+    .cal-day.has-config { position: relative; }
+    .cal-day.has-config::after {
+      content: ''; position: absolute; bottom: 3px; right: 3px;
+      width: 5px; height: 5px; border-radius: 50%; background: var(--change);
+    }
+    .cal-day.has-sub::after   { background: var(--accent); }
+    .cal-day.has-label::after { background: var(--change); }
+
+    .day-info-banner {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--change-bg); border: 1px solid var(--change);
+      border-radius: 10px; padding: 8px 12px; margin-bottom: 10px;
+      font-size: 12px; font-weight: 700; color: var(--change);
+    }
+    .day-info-banner.sub-banner { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+
+    /* Day-config modal uses same modal structure */
     .toast {
       position: fixed; bottom: calc(68px + 12px + env(safe-area-inset-bottom));
       left: 50%; transform: translateX(-50%) translateY(8px);
@@ -543,9 +560,9 @@
 
     <div class="settings-section">
       <div class="settings-group-label">通知</div>
-      <div class="settings-row" onclick="window._requestNotifPermission()">
+      <div class="settings-row" onclick="requestNotifPermission()">
         <span class="settings-row-label">授業開始通知（3分前）</span>
-        <span class="settings-row-val" id="notifPermBtn">許可する →</span>
+        <span class="settings-row-val" id="notifPermBtn" onclick="requestNotifPermission()">許可する →</span>
       </div>
     </div>
     <div class="settings-section">
@@ -638,6 +655,63 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Day Config Modal -->
+<div class="modal-overlay" id="dayConfigOverlay" onclick="if(event.target===this)closeDayConfig()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-heading">日程設定</div>
+    <div class="modal-period" id="dayConfigDate"></div>
+
+    <div class="form-group">
+      <label class="form-label">A/B週</label>
+      <div class="chip-row" id="dayConfigWeekChips">
+        <div class="chip" data-week="A" onclick="pickDayWeek('A')">A週</div>
+        <div class="chip" data-week="B" onclick="pickDayWeek('B')">B週</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">未選択の場合はデフォルト（上部A/B）に従います</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">日程振替 <span style="font-weight:400;text-transform:none;letter-spacing:0">（この日を別の曜日の時間割で行う）</span></label>
+      <div class="chip-row" id="dayConfigSubChips">
+        <div class="chip" data-sub="none" onclick="pickDaySub('none')">振替なし</div>
+        <div class="chip" data-sub="0" onclick="pickDaySub('0')">月曜日程</div>
+        <div class="chip" data-sub="1" onclick="pickDaySub('1')">火曜日程</div>
+        <div class="chip" data-sub="2" onclick="pickDaySub('2')">水曜日程</div>
+        <div class="chip" data-sub="3" onclick="pickDaySub('3')">木曜日程</div>
+        <div class="chip" data-sub="4" onclick="pickDaySub('4')">金曜日程</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">特別ラベル <span style="font-weight:400;text-transform:none;letter-spacing:0">（例：中間試験・遠足など）</span></label>
+      <input type="text" class="form-input" id="dayConfigLabel" placeholder="例：中間試験" maxlength="20">
+      <div class="chip-row" style="margin-top:8px">
+        <div class="chip" onclick="setDayLabel('中間試験')">中間試験</div>
+        <div class="chip" onclick="setDayLabel('期末試験')">期末試験</div>
+        <div class="chip" onclick="setDayLabel('休校日')">休校日</div>
+        <div class="chip" onclick="setDayLabel('遠足')">遠足</div>
+        <div class="chip" onclick="setDayLabel('')">なし</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">時間割</label>
+      <div class="settings-row" style="background:var(--bg3);border-radius:10px;padding:10px 14px;margin:0;cursor:pointer" onclick="toggleHideTT()">
+        <span class="settings-row-label">時間割を非表示にする</span>
+        <span id="hideTTToggle" style="font-size:22px;line-height:1">☐</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">試験日など、通常授業がない日に使用</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeDayConfig()">キャンセル</button>
+      <button class="btn btn-primary"   onclick="saveDayConfig()">保存</button>
+      <button class="btn btn-danger"    id="dayConfigClear" onclick="clearDayConfig()">設定をリセット</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const DAYS = ['月','火','水','木','金'];
 const PERIODS = [
@@ -647,19 +721,20 @@ const PERIODS = [
   { n:4, t:'14:30\n16:00',start:[14,30], end:[16,0]  },
 ];
 
-let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{} };
+let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{} };
 let modalDay=0, modalPeriod=0, selWeek='both', selStatus='normal';
 let calYear=0, calMonth=0;
+let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConfigHideTT=false;
 
 // ── Storage ──
 function load(){
   try {
     const d=JSON.parse(localStorage.getItem('tt-v4')||'{}');
-    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A';
+    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{};
   } catch(e){}
 }
 function save(){
-  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week}));
+  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap}));
 }
 
 // ── Keys ──
@@ -678,6 +753,15 @@ function weekForDate(dt){
 function getEntry(d,p){
   const w=weekForDate(dateOfDay(d));
   return S.tt[ttKey(d,p,w)]||S.tt[ttKey(d,p,'both')]||null;
+}
+// Get entry for a specific date (respects dayMap substitution)
+function getEntryForDate(di,pi,dt){
+  const ds=dateStr(dt);
+  const cfg=S.dayMap[ds];
+  if(cfg&&cfg.hideTT) return null;
+  const actualDi=(cfg&&cfg.sub!=null)?cfg.sub:di;
+  const w=weekForDate(dt);
+  return S.tt[ttKey(actualDi,pi,w)]||S.tt[ttKey(actualDi,pi,'both')]||null;
 }
 function currentDayWeek(){ return weekForDate(dateOfDay(S.day)); }
 
@@ -715,30 +799,45 @@ function renderTimetable(){
   const now=new Date(), dow=now.getDay();
   const hm=now.getHours()*60+now.getMinutes();
   const isToday=(dow>=1&&dow<=5&&dow-1===S.day);
+  const todayDate=dateOfDay(S.day);
+  const ds=dateStr(todayDate);
+  const cfg=S.dayMap[ds]||null;
+
+  // Day info banner
+  if(cfg&&(cfg.sub!=null||cfg.label)){
+    const banner=document.createElement('div');
+    if(cfg.sub!=null&&cfg.label){
+      banner.className='day-info-banner';
+      banner.textContent=`${'月火水木金'[cfg.sub]}曜日程 ／ ${cfg.label}`;
+    } else if(cfg.sub!=null){
+      banner.className='day-info-banner sub-banner';
+      banner.textContent=`${'月火水木金'[cfg.sub]}曜日程で実施`;
+    } else {
+      banner.className='day-info-banner';
+      banner.textContent=cfg.label;
+    }
+    container.appendChild(banner);
+  }
 
   for(let pi=0;pi<PERIODS.length;pi++){
     const p=PERIODS[pi];
-    const entry=getEntry(S.day,pi);
-    const dayDate=dateStr(dateOfDay(S.day));
-    const ov=S.ov[`${dayDate}-${pi}`]||null;
+    const entry=getEntryForDate(S.day,pi,todayDate);
+    const ov=S.ov[`${ds}-${pi}`]||null;
 
     const startMin=p.start[0]*60+p.start[1];
     const endMin=p.end[0]*60+p.end[1];
     const isNow=isToday&&hm>=startMin&&hm<endMin;
     const isPast=isToday&&hm>=endMin;
 
-    // row
     const row=document.createElement('div');
     row.className='tt-day-row';
 
-    // label
     const lbl=document.createElement('div');
     lbl.className='tt-day-row-label';
     const sh=`${p.start[0]}:${String(p.start[1]).padStart(2,'0')}`;
     const eh=`${p.end[0]}:${String(p.end[1]).padStart(2,'0')}`;
     lbl.innerHTML=`<span class="lbl-n">${p.n}</span><span class="lbl-gen">限</span><span class="lbl-time">${sh}<br>${eh}</span>`;
 
-    // cell
     const cell=document.createElement('div');
     let cls='tt-day-cell';
     if(ov) cls+=` has-${ov.status}`;
@@ -750,7 +849,7 @@ function renderTimetable(){
     if(isNow) cell.innerHTML=`<div class="cell-now-bar"></div>`;
 
     if(!entry){
-      cell.innerHTML+= `<div class="tt-day-cell-empty"><span style="font-size:22px;color:var(--border)">+</span><span>タップして追加</span></div>`;
+      cell.innerHTML+=`<div class="tt-day-cell-empty"><span style="font-size:22px;color:var(--border)">+</span><span>タップして追加</span></div>`;
     } else {
       const wt=entry.weekType||'both';
       let badge='';
@@ -789,24 +888,20 @@ function updateProgressStrip(){
 
   const hm=now.getHours()*60+now.getMinutes();
   const todayDayIdx=dow-1;
+  const todayDt=dateOfDay(todayDayIdx);
+  const todayDs=dateStr(todayDt);
 
-  // Check if currently in a class period
   for(let i=0;i<PERIODS.length;i++){
     const p=PERIODS[i];
     const startMin=p.start[0]*60+p.start[1];
     const endMin=p.end[0]*60+p.end[1];
     if(hm>=startMin&&hm<endMin){
-      const entry=getEntry(todayDayIdx,i);
-      const ov=S.ov[`${dateStr(dateOfDay(todayDayIdx))}-${i}`];
-      const totalMin=endMin-startMin;
-      const elapsed=hm-startMin;
-      const pct=Math.min(100,Math.round(elapsed/totalMin*100));
+      const entry=getEntryForDate(todayDayIdx,i,todayDt);
+      const ov=S.ov[`${todayDs}-${i}`];
+      const pct=Math.min(100,Math.round((hm-startMin)/(endMin-startMin)*100));
       const remain=endMin-hm;
-
-      strip.classList.add('visible');
-      strip.classList.remove('in-break');
+      strip.classList.add('visible'); strip.classList.remove('in-break');
       bar.style.width=pct+'%';
-
       document.getElementById('psLabel').textContent=`${p.n}コマ目 授業中`;
       document.getElementById('psLabel').className='ps-label';
       if(entry&&!(ov&&ov.status==='cancel')){
@@ -821,22 +916,17 @@ function updateProgressStrip(){
     }
   }
 
-  // Check if in a break between periods
   for(let i=0;i<PERIODS.length-1;i++){
     const breakStart=PERIODS[i].end[0]*60+PERIODS[i].end[1];
     const breakEnd=PERIODS[i+1].start[0]*60+PERIODS[i+1].start[1];
     if(hm>=breakStart&&hm<breakEnd){
-      const totalMin=breakEnd-breakStart;
-      const elapsed=hm-breakStart;
-      const pct=Math.min(100,Math.round(elapsed/totalMin*100));
+      const pct=Math.min(100,Math.round((hm-breakStart)/(breakEnd-breakStart)*100));
       const remain=breakEnd-hm;
       const nextP=PERIODS[i+1];
-      const nextEntry=getEntry(todayDayIdx,i+1);
-      const nextOv=S.ov[`${dateStr(dateOfDay(todayDayIdx))}-${i+1}`];
-
+      const nextEntry=getEntryForDate(todayDayIdx,i+1,todayDt);
+      const nextOv=S.ov[`${todayDs}-${i+1}`];
       strip.classList.add('visible','in-break');
       bar.style.width=pct+'%';
-
       document.getElementById('psLabel').textContent=`休憩中 → ${nextP.n}コマ目`;
       document.getElementById('psLabel').className='ps-label lbl-break';
       if(nextEntry&&!(nextOv&&nextOv.status==='cancel')){
@@ -851,21 +941,19 @@ function updateProgressStrip(){
     }
   }
 
-  // Next upcoming class (before first period or after last break ended)
   let found=null;
   for(let i=0;i<PERIODS.length;i++){
     const p=PERIODS[i];
     const startMin=p.start[0]*60+p.start[1];
     if(hm<startMin){
-      const entry=getEntry(todayDayIdx,i);
-      const ov=S.ov[`${dateStr(dateOfDay(todayDayIdx))}-${i}`];
+      const entry=getEntryForDate(todayDayIdx,i,todayDt);
+      const ov=S.ov[`${todayDs}-${i}`];
       if(entry&&!(ov&&ov.status==='cancel')){ found={entry,p,i}; break; }
     }
   }
   if(found){
     const startMin=found.p.start[0]*60+found.p.start[1];
-    strip.classList.add('visible');
-    strip.classList.remove('in-break');
+    strip.classList.add('visible'); strip.classList.remove('in-break');
     bar.style.width='0%';
     document.getElementById('psLabel').textContent=`${found.p.n}コマ目 次の授業`;
     document.getElementById('psLabel').className='ps-label';
@@ -1072,28 +1160,116 @@ function renderCalendar(){
       var wk=S.weekMap[ds];
       if(wk==='A') cls+=' week-a';
       else if(wk==='B') cls+=' week-b';
+      var dm=S.dayMap[ds];
+      if(dm){
+        if(dm.sub!=null) cls+=' has-config has-sub';
+        else if(dm.label) cls+=' has-config has-label';
+      }
     }
     if(dt.getTime()===today.getTime()) cls+=' is-today';
     el.className=cls;
     el.textContent=d;
     if(!isWeekend){
-      (function(key){ el.onclick=function(){ toggleDayWeek(key); }; })(ds);
+      (function(key){ el.onclick=function(){ openDayConfig(key); }; })(ds);
     }
     grid.appendChild(el);
   }
 }
-function toggleDayWeek(ds){
-  const cur=S.weekMap[ds];
-  if(!cur) S.weekMap[ds]='A';
-  else if(cur==='A') S.weekMap[ds]='B';
-  else delete S.weekMap[ds];
-  save(); renderCalendar();
-  const today=new Date(), dow=today.getDay();
-  const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow));
-  for(let i=0;i<5;i++){
-    const d=new Date(mon); d.setDate(mon.getDate()+i);
-    if(dateStr(d)===ds){ renderTimetable(); break; }
+// ── Day Config Modal ──
+function toggleHideTT(){
+  _dayConfigHideTT = !_dayConfigHideTT;
+  document.getElementById('hideTTToggle').textContent = _dayConfigHideTT ? '☑' : '☐';
+}
+
+function openDayConfig(ds){
+  _dayConfigDs = ds;
+  const dt = new Date(ds);
+  const ymd = `${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日（${'日月火水木金土'[dt.getDay()]}）`;
+  document.getElementById('dayConfigDate').textContent = ymd;
+
+  // A/B week
+  const curWk = S.weekMap[ds] || null;
+  _dayConfigSelWeek = curWk;
+  updateDayConfigWeekChips();
+
+  // Substitution
+  const cfg = S.dayMap[ds] || {};
+  _dayConfigSelSub = cfg.sub != null ? String(cfg.sub) : 'none';
+  updateDaySubChips();
+
+  // Label
+  document.getElementById('dayConfigLabel').value = cfg.label || '';
+
+  // hideTT
+  _dayConfigHideTT = !!(cfg && cfg.hideTT);
+  document.getElementById('hideTTToggle').textContent = _dayConfigHideTT ? '☑' : '☐';
+
+  document.getElementById('dayConfigOverlay').classList.add('open');
+}
+
+function closeDayConfig(){
+  document.getElementById('dayConfigOverlay').classList.remove('open');
+  _dayConfigDs = null;
+}
+
+function pickDaySub(val){
+  _dayConfigSelSub = val;
+  updateDaySubChips();
+}
+
+function updateDaySubChips(){
+  document.querySelectorAll('#dayConfigSubChips .chip[data-sub]').forEach(c=>{
+    c.className = 'chip' + (c.dataset.sub === _dayConfigSelSub ? ' sel-change' : '');
+  });
+}
+
+function pickDayWeek(val){
+  _dayConfigSelWeek = (_dayConfigSelWeek === val) ? null : val;
+  updateDayConfigWeekChips();
+}
+
+function updateDayConfigWeekChips(){
+  document.querySelectorAll('#dayConfigWeekChips .chip[data-week]').forEach(c=>{
+    const w = c.dataset.week;
+    const sel = w === _dayConfigSelWeek;
+    c.className = 'chip' + (sel ? (w==='A' ? ' sel-a' : ' sel-b') : '');
+  });
+}
+
+function setDayLabel(val){
+  document.getElementById('dayConfigLabel').value = val;
+}
+
+function saveDayConfig(){
+  if(!_dayConfigDs) return;
+  // A/B week
+  if(_dayConfigSelWeek) S.weekMap[_dayConfigDs] = _dayConfigSelWeek;
+  else delete S.weekMap[_dayConfigDs];
+
+  // dayMap
+  const sub = _dayConfigSelSub === 'none' ? null : parseInt(_dayConfigSelSub);
+  const label = document.getElementById('dayConfigLabel').value.trim();
+  if(sub != null || label || _dayConfigHideTT){
+    S.dayMap[_dayConfigDs] = {};
+    if(sub != null)        S.dayMap[_dayConfigDs].sub    = sub;
+    if(label)              S.dayMap[_dayConfigDs].label  = label;
+    if(_dayConfigHideTT)   S.dayMap[_dayConfigDs].hideTT = true;
+  } else {
+    delete S.dayMap[_dayConfigDs];
   }
+
+  save(); renderCalendar(); renderTimetable();
+  closeDayConfig();
+  showToast('保存しました ✓');
+}
+
+function clearDayConfig(){
+  if(!_dayConfigDs) return;
+  delete S.weekMap[_dayConfigDs];
+  delete S.dayMap[_dayConfigDs];
+  save(); renderCalendar(); renderTimetable();
+  closeDayConfig();
+  showToast('設定をリセットしました');
 }
 
 // ── Auto-expire overrides (休講/補講 are date-specific, clean up past dates) ──
@@ -1150,80 +1326,70 @@ function importData(){
 }
 
 // ── Init ──
+// ── Notification Scheduler ──
+let _notifTimers=[];
+function clearNotifTimers(){ _notifTimers.forEach(clearTimeout); _notifTimers=[]; }
+
+function scheduleNotifications(){
+  clearNotifTimers();
+  if(!('Notification' in window)||Notification.permission!=='granted') return;
+  const now=new Date(), dow=now.getDay();
+  if(dow<1||dow>5) return;
+  const todayDayIdx=dow-1;
+  const todayDt=dateOfDay(todayDayIdx);
+  const todayDate=dateStr(todayDt);
+  const hm=now.getHours()*60+now.getMinutes();
+  const NOTIFY_BEFORE=3;
+  for(let i=0;i<PERIODS.length;i++){
+    const p=PERIODS[i];
+    const startMin=p.start[0]*60+p.start[1];
+    const notifyMin=startMin-NOTIFY_BEFORE;
+    if(hm>=notifyMin) continue;
+    const entry=getEntryForDate(todayDayIdx,i,todayDt);
+    const ov=S.ov[`${todayDate}-${i}`];
+    if(!entry||(ov&&ov.status==='cancel')) continue;
+    const msUntil=(notifyMin-hm)*60*1000 - now.getSeconds()*1000 - now.getMilliseconds();
+    const subj=entry.subject, pNum=p.n;
+    const tid=setTimeout(function(){
+      navigator.serviceWorker.ready.then(function(reg){
+        reg.showNotification(`${pNum}コマ目 開始3分前です`, {
+          body: subj+(entry.teacher?` / ${entry.teacher}`:'' )+(entry.room?` (${entry.room})`:''),
+          icon: './icon-192x192.png', badge: './icon-192x192.png',
+          tag: `period-${pNum}`, renotify: false, silent: false
+        });
+      });
+    }, msUntil);
+    _notifTimers.push(tid);
+  }
+}
+
+async function requestNotifPermission(){
+  if(!('Notification' in window)){ showToast('この環境は通知未対応です'); return; }
+  if(Notification.permission==='granted'){ scheduleNotifications(); showToast('通知は許可済みです'); return; }
+  const r=await Notification.requestPermission();
+  if(r==='granted'){ scheduleNotifications(); showToast('通知を有効にしました ✓'); renderNotifBtn(); }
+  else { showToast('通知が拒否されました'); }
+}
+
+function renderNotifBtn(){
+  const btn=document.getElementById('notifPermBtn');
+  if(!btn) return;
+  if(!('Notification' in window)){ btn.style.display='none'; return; }
+  if(Notification.permission==='granted'){
+    btn.textContent='通知: ON ✓';
+    btn.style.color='var(--accent)';
+  } else {
+    btn.textContent='授業開始通知を有効にする';
+    btn.style.color='';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function(){
   load(); initCal(); setupDates(); setWeek(S.week);
   document.getElementById('dayTabs').classList.remove('hidden');
   renderTimetable(); renderOverview();
-  // Don't call renderCalendar here - settings page is hidden, grid has no width.
-  // It will be called via showPage('settings') -> requestAnimationFrame.
   setInterval(updateProgressStrip, 30000);
-  // Auto-expire overrides older than today
   expireOldOverrides();
-  // ── Notification Scheduler ──
-  let _notifTimers=[];
-  function clearNotifTimers(){ _notifTimers.forEach(clearTimeout); _notifTimers=[]; }
-
-  function scheduleNotifications(){
-    clearNotifTimers();
-    if(!('Notification' in window)||Notification.permission!=='granted') return;
-    const now=new Date(), dow=now.getDay();
-    if(dow<1||dow>5) return;
-    const todayDayIdx=dow-1;
-    const todayDate=dateStr(dateOfDay(todayDayIdx));
-    const hm=now.getHours()*60+now.getMinutes();
-    const NOTIFY_BEFORE=3; // minutes
-
-    for(let i=0;i<PERIODS.length;i++){
-      const p=PERIODS[i];
-      const startMin=p.start[0]*60+p.start[1];
-      const notifyMin=startMin-NOTIFY_BEFORE;
-      if(hm>=notifyMin) continue; // already past
-
-      const entry=getEntry(todayDayIdx,i);
-      const ov=S.ov[`${todayDate}-${i}`];
-      if(!entry||(ov&&ov.status==='cancel')) continue;
-
-      const msUntil=(notifyMin-hm)*60*1000 - now.getSeconds()*1000 - now.getMilliseconds();
-      const subj=entry.subject;
-      const pNum=p.n;
-      const tid=setTimeout(function(){
-        navigator.serviceWorker.ready.then(function(reg){
-          reg.showNotification(`${pNum}コマ目 開始3分前です`, {
-            body: subj+(entry.teacher?` / ${entry.teacher}`:'' )+(entry.room?` (${entry.room})`:''),
-            icon: './icon-192x192.png',
-            badge: './icon-192x192.png',
-            tag: `period-${pNum}`,
-            renotify: false,
-            silent: false
-          });
-        });
-      }, msUntil);
-      _notifTimers.push(tid);
-    }
-  }
-
-  async function requestNotifPermission(){
-    if(!('Notification' in window)){ showToast('この環境は通知未対応です'); return; }
-    if(Notification.permission==='granted'){ scheduleNotifications(); showToast('通知は許可済みです'); return; }
-    const r=await Notification.requestPermission();
-    if(r==='granted'){ scheduleNotifications(); showToast('通知を有効にしました ✓'); renderNotifBtn(); }
-    else { showToast('通知が拒否されました'); }
-  }
-
-  function renderNotifBtn(){
-    const btn=document.getElementById('notifPermBtn');
-    if(!btn) return;
-    if(!('Notification' in window)){ btn.style.display='none'; return; }
-    if(Notification.permission==='granted'){
-      btn.textContent='通知: ON ✓';
-      btn.style.color='var(--accent)';
-    } else {
-      btn.textContent='授業開始通知を有効にする';
-      btn.style.color='';
-    }
-  }
-  window._requestNotifPermission=requestNotifPermission;
-
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js', { scope: './' }).then(function(){
       scheduleNotifications();
