@@ -475,8 +475,8 @@
 <header>
   <div class="header-inner">
     <div>
-      <div class="logo-main">鶴岡高専 時間割</div>
-      <div class="logo-sub">TSURUOKA NIT</div>
+      <div class="logo-main">鶴岡高専 <span id="headerClassName"></span></div>
+      <div class="logo-sub" id="headerSub">TSURUOKA NIT</div>
     </div>
     <div class="week-toggle" id="weekToggle">
       <button class="week-btn" id="weekA" onclick="setWeek('A')">A週</button>
@@ -533,6 +533,13 @@
   <div id="page-settings" class="page">
     <div class="settings-title">設定</div>
 
+    <div class="settings-section">
+      <div class="settings-group-label">クラス名</div>
+      <div style="padding:10px 14px">
+        <input type="text" class="form-input" id="inputClassName" placeholder="例：1-2, 3I, 2I DD" oninput="updateClassName()" maxlength="20">
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">ヘッダーに「鶴岡高専 ◯◯」と表示されます</div>
+      </div>
+    </div>
     <div class="settings-section cal-section">
       <div class="settings-group-label">A週 / B週 カレンダー設定</div>
       <div style="padding:12px 14px">
@@ -578,7 +585,7 @@
       <div class="settings-row"><span class="settings-row-label">対象</span><span class="settings-row-val">鶴岡工業高等専門学校</span></div>
     </div>
 
-    <div class="credit-block">Created by <a href="#">Fig</a></div>
+    <div class="credit-block">Created by <a href="https://fig-jp.github.io/website/about">Fig</a></div>
   </div>
 </main>
 
@@ -643,6 +650,20 @@
     <div class="form-group" id="noteGroup" style="display:none">
       <label class="form-label">メモ</label>
       <input type="text" class="form-input" id="inputNote" placeholder="">
+    </div>
+    <div id="changeGroup" style="display:none">
+      <div class="form-group">
+        <label class="form-label">変更後の科目名</label>
+        <input type="text" class="form-input" id="inputChangeSubject" placeholder="空欄で元の科目を維持">
+      </div>
+      <div class="form-group">
+        <label class="form-label">変更後の教員名</label>
+        <input type="text" class="form-input" id="inputChangeTeacher" placeholder="空欄で元の教員を維持">
+      </div>
+      <div class="form-group">
+        <label class="form-label">変更後の教室</label>
+        <input type="text" class="form-input" id="inputChangeRoom" placeholder="空欄で元の教室を維持">
+      </div>
     </div>
 
     <div class="modal-actions">
@@ -721,7 +742,7 @@ const PERIODS = [
   { n:4, t:'14:30\n16:00',start:[14,30], end:[16,0]  },
 ];
 
-let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{} };
+let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{}, className:'' };
 let modalDay=0, modalPeriod=0, selWeek='both', selStatus='normal';
 let calYear=0, calMonth=0;
 let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConfigHideTT=false;
@@ -730,11 +751,11 @@ let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConf
 function load(){
   try {
     const d=JSON.parse(localStorage.getItem('tt-v4')||'{}');
-    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{};
+    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{}; S.className=d.className||'';
   } catch(e){}
 }
 function save(){
-  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap}));
+  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap,className:S.className}));
 }
 
 // ── Keys ──
@@ -761,7 +782,17 @@ function getEntryForDate(di,pi,dt){
   if(cfg&&cfg.hideTT) return null;
   const actualDi=(cfg&&cfg.sub!=null)?cfg.sub:di;
   const w=weekForDate(dt);
-  return S.tt[ttKey(actualDi,pi,w)]||S.tt[ttKey(actualDi,pi,'both')]||null;
+  const base=S.tt[ttKey(actualDi,pi,w)]||S.tt[ttKey(actualDi,pi,'both')]||null;
+  const ov=S.ov[`${ds}-${pi}`];
+  if(base&&ov&&ov.status==='change'&&(ov.changeSubject||ov.changeTeacher||ov.changeRoom)){
+    return {
+      subject: ov.changeSubject||base.subject,
+      teacher: ov.changeTeacher||base.teacher,
+      room:    ov.changeRoom   ||base.room,
+      weekType: base.weekType
+    };
+  }
+  return base;
 }
 function currentDayWeek(){ return weekForDate(dateOfDay(S.day)); }
 
@@ -969,7 +1000,7 @@ function updateProgressStrip(){
 // ── Overview ──
 function renderOverview(){
   const now=new Date();
-  document.getElementById('ssTitle').textContent=`鶴岡高専 時間割 (${S.week}週)`;
+  document.getElementById('ssTitle').textContent=`鶴岡高専${S.className?' '+S.className:''} 時間割 (${S.week}週)`;
   document.getElementById('ssMeta').textContent=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} 生成`;
   const container=document.getElementById('weekOverview');
   container.innerHTML='';
@@ -1034,14 +1065,23 @@ function openModal(d,p){
   const ov=S.ov[`${defaultDate}-${p}`]||null;
   selStatus=ov?ov.status:'normal';
   document.getElementById('inputNote').value=ov?ov.note||'':'';
+  document.getElementById('inputChangeSubject').value=ov?ov.changeSubject||'':'';
+  document.getElementById('inputChangeTeacher').value=ov?ov.changeTeacher||'':'';
+  document.getElementById('inputChangeRoom').value=ov?ov.changeRoom||'':'';
+
+  function loadOvFields(o){
+    selStatus=o?o.status:'normal';
+    document.getElementById('inputNote').value=o?o.note||'':'';
+    document.getElementById('inputChangeSubject').value=o?o.changeSubject||'':'';
+    document.getElementById('inputChangeTeacher').value=o?o.changeTeacher||'':'';
+    document.getElementById('inputChangeRoom').value=o?o.changeRoom||'':'';
+    updateChips(); updateNoteVis();
+  }
 
   document.getElementById('inputOverrideDate').onchange=()=>{
     const ds=document.getElementById('inputOverrideDate').value;
-    if(!ds){ selStatus='normal'; document.getElementById('inputNote').value=''; updateChips(); updateNoteVis(); return; }
-    const o=S.ov[`${ds}-${p}`]||null;
-    selStatus=o?o.status:'normal';
-    document.getElementById('inputNote').value=o?o.note||'':'';
-    updateChips(); updateNoteVis();
+    if(!ds){ loadOvFields(null); return; }
+    loadOvFields(S.ov[`${ds}-${p}`]||null);
   };
 
   updateChips(); updateNoteVis();
@@ -1063,7 +1103,8 @@ function updateChips(){
 }
 function updateNoteVis(){
   document.getElementById('noteGroup').style.display=selStatus!=='normal'?'block':'none';
-  const ph={cancel:'例：先生出張のため',supp:'例：第3体育館で実施',change:'例：教室変更→13F'};
+  document.getElementById('changeGroup').style.display=selStatus==='change'?'block':'none';
+  const ph={cancel:'例：先生出張のため',supp:'例：第3体育館で実施',change:'例：教室変更など'};
   document.getElementById('inputNote').placeholder=ph[selStatus]||'';
 }
 function saveEntry(){
@@ -1084,8 +1125,18 @@ function saveEntry(){
   }
   if(ovDate){
     const ok=`${ovDate}-${modalPeriod}`;
-    if(selStatus!=='normal') S.ov[ok]={status:selStatus,note};
-    else delete S.ov[ok];
+    if(selStatus!=='normal'){
+      const ovObj={status:selStatus,note};
+      if(selStatus==='change'){
+        const cs=document.getElementById('inputChangeSubject').value.trim();
+        const ct=document.getElementById('inputChangeTeacher').value.trim();
+        const cr=document.getElementById('inputChangeRoom').value.trim();
+        if(cs) ovObj.changeSubject=cs;
+        if(ct) ovObj.changeTeacher=ct;
+        if(cr) ovObj.changeRoom=cr;
+      }
+      S.ov[ok]=ovObj;
+    } else delete S.ov[ok];
   }
   save(); closeModal(); renderTimetable(); renderOverview();
   showToast('保存しました ✓');
@@ -1098,7 +1149,13 @@ function deleteEntry(){
   showToast('削除しました');
 }
 
-// ── Pages ──
+function updateClassName(){
+  const v=document.getElementById('inputClassName').value.trim();
+  S.className=v;
+  document.getElementById('headerClassName').textContent=v||'時間割';
+  document.getElementById('headerSub').textContent=v?`${v} 時間割`:'TSURUOKA NIT';
+  save();
+}
 function showPage(p){
   S.page=p;
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
@@ -1303,9 +1360,10 @@ function resetData(){
   save(); renderTimetable(); renderOverview(); renderCalendar(); showToast('リセットしました');
 }
 function exportData(){
-  const name=(prompt('保存ファイル名を入力（拡張子なし）','tsuruoka-timetable')||'').trim();
+  const defaultName=S.className?`tsuruoka-${S.className}`:'tsuruoka-timetable';
+  const name=(prompt('保存ファイル名を入力（拡張子なし）',defaultName)||'').trim();
   if(!name) return;
-  const blob=new Blob([JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,dayMap:S.dayMap,className:S.className},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=name+'.json'; a.click();
 }
@@ -1316,7 +1374,10 @@ function importData(){
     r.onload=ev=>{
       try{
         const d=JSON.parse(ev.target.result);
-        S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{};
+        S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.dayMap=d.dayMap||{}; S.className=d.className||'';
+        document.getElementById('inputClassName').value=S.className;
+        document.getElementById('headerClassName').textContent=S.className||'時間割';
+        document.getElementById('headerSub').textContent=S.className?`${S.className} 時間割`:'TSURUOKA NIT';
         save(); renderTimetable(); renderOverview(); renderCalendar(); showToast('インポートしました ✓');
       }catch(e){ showToast('ファイルが無効です'); }
     };
@@ -1387,6 +1448,10 @@ function renderNotifBtn(){
 document.addEventListener('DOMContentLoaded', function(){
   load(); initCal(); setupDates(); setWeek(S.week);
   document.getElementById('dayTabs').classList.remove('hidden');
+  // init class name
+  document.getElementById('inputClassName').value=S.className||'';
+  document.getElementById('headerClassName').textContent=S.className||'時間割';
+  document.getElementById('headerSub').textContent=S.className?`${S.className} 時間割`:'TSURUOKA NIT';
   renderTimetable(); renderOverview();
   setInterval(updateProgressStrip, 30000);
   expireOldOverrides();
