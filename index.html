@@ -154,6 +154,28 @@
     .day-tab .day-date { display: block; font-size: 10px; margin-top: 1px; font-family: 'IBM Plex Mono', monospace; }
     .day-tab.today .day-name { color: var(--accent); }
 
+    /* ── Week Nav ── */
+    .week-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 14px 0;
+      max-width: 600px; margin: 0 auto;
+    }
+    .week-nav-btn {
+      background: none; border: none; color: var(--accent);
+      font-size: 20px; padding: 4px 10px; cursor: pointer;
+      border-radius: 8px; transition: background 0.1s;
+    }
+    .week-nav-btn:active { background: var(--bg3); }
+    .week-nav-btn:disabled { color: var(--border); }
+    .week-nav-label {
+      font-size: 12px; font-weight: 700; color: var(--text2);
+      font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.04em;
+      cursor: pointer; padding: 4px 8px; border-radius: 8px;
+      transition: background 0.1s;
+    }
+    .week-nav-label:active { background: var(--bg3); }
+    .week-nav-label.is-this-week { color: var(--accent); }
+
     /* ── Main ── */
     main {
       padding-top: 12px;
@@ -164,7 +186,21 @@
       margin: 0 auto;
     }
 
-    /* ── Progress Strip ── */
+    /* ── View mode toggle ── */
+    .view-mode-toggle {
+      display: flex; background: var(--bg3); border-radius: 10px;
+      padding: 3px; gap: 2px; margin-bottom: 12px;
+    }
+    .view-mode-btn {
+      flex: 1; border: none; background: none; border-radius: 8px;
+      padding: 7px 4px; font-size: 12px; font-weight: 600;
+      color: var(--text2); cursor: pointer; transition: all 0.15s;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .view-mode-btn.active {
+      background: var(--bg); color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    }
     .progress-strip {
       display: none;
       flex-direction: column;
@@ -485,6 +521,11 @@
   </div>
 </header>
 
+<div class="week-nav hidden" id="weekNav">
+  <button class="week-nav-btn" onclick="shiftWeek(-1)">‹</button>
+  <span class="week-nav-label" id="weekNavLabel" onclick="shiftWeek(0)">今週</span>
+  <button class="week-nav-btn" onclick="shiftWeek(1)">›</button>
+</div>
 <div class="day-tabs hidden" id="dayTabs">
   <button class="day-tab" data-day="0" onclick="selectDay(0)"><span class="day-name">月</span><span class="day-date" id="d0"></span></button>
   <button class="day-tab" data-day="1" onclick="selectDay(1)"><span class="day-name">火</span><span class="day-date" id="d1"></span></button>
@@ -496,6 +537,10 @@
 <main id="mainContent">
   <!-- Timetable page -->
   <div id="page-timetable" class="page active">
+    <div class="view-mode-toggle">
+      <button class="view-mode-btn active" id="vmBase" onclick="setViewMode('base')">元の時間割</button>
+      <button class="view-mode-btn" id="vmWeek" onclick="setViewMode('week')">この週の変更</button>
+    </div>
     <div class="progress-strip" id="progressStrip">
       <div class="progress-bar-bg" id="progressBarBg"></div>
       <div class="progress-strip-inner">
@@ -742,7 +787,7 @@ const PERIODS = [
   { n:4, t:'14:30\n16:00',start:[14,30], end:[16,0]  },
 ];
 
-let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{}, className:'' };
+let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{}, className:'', weekOffset:0, viewMode:'base' };
 let modalDay=0, modalPeriod=0, selWeek='both', selStatus='normal';
 let calYear=0, calMonth=0;
 let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConfigHideTT=false;
@@ -762,7 +807,7 @@ function save(){
 function ttKey(d,p,w){ return `${d}-${p}-${w}`; }
 function dateOfDay(di){
   const today=new Date(), dow=today.getDay();
-  const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow));
+  const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow)+(S.weekOffset||0)*7);
   const t=new Date(mon); t.setDate(mon.getDate()+di); return t;
 }
 function dateStr(dt){
@@ -812,24 +857,41 @@ function selectDay(d){
 }
 function setupDates(){
   const today=new Date(), dow=today.getDay();
-  const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow));
   for(let i=0;i<5;i++){
-    const d=new Date(mon); d.setDate(mon.getDate()+i);
+    const d=dateOfDay(i);
     document.getElementById(`d${i}`).textContent=`${d.getMonth()+1}/${d.getDate()}`;
-    if(i===(dow===0?6:dow-1)) document.querySelectorAll('.day-tab')[i].classList.add('today');
+    const isToday=S.weekOffset===0&&i===(dow===0?6:dow-1);
+    document.querySelectorAll('.day-tab')[i].classList.toggle('today', isToday);
   }
-  if(dow>=1&&dow<=5) S.day=dow-1;
+  // weekNav label
+  const lbl=document.getElementById('weekNavLabel');
+  if(S.weekOffset===0){ lbl.textContent='今週'; lbl.classList.add('is-this-week'); }
+  else if(S.weekOffset===1){ lbl.textContent='来週'; lbl.classList.remove('is-this-week'); }
+  else if(S.weekOffset===-1){ lbl.textContent='先週'; lbl.classList.remove('is-this-week'); }
+  else {
+    const mon=dateOfDay(0);
+    lbl.textContent=`${mon.getMonth()+1}/${mon.getDate()}週`;
+    lbl.classList.remove('is-this-week');
+  }
+  if(S.weekOffset===0&&dow>=1&&dow<=5) S.day=dow-1;
   selectDay(S.day);
+}
+
+function shiftWeek(delta){
+  if(delta===0){ S.weekOffset=0; }
+  else { S.weekOffset=(S.weekOffset||0)+delta; }
+  setupDates();
 }
 
 // ── Render Timetable (single-day list) ──
 function renderTimetable(){
   const container=document.getElementById('ttDayList');
   container.innerHTML='';
+  if((S.weekOffset||0)!==0){ document.getElementById('progressStrip').classList.remove('visible'); }
 
   const now=new Date(), dow=now.getDay();
   const hm=now.getHours()*60+now.getMinutes();
-  const isToday=(dow>=1&&dow<=5&&dow-1===S.day);
+  const isToday=(S.weekOffset||0)===0&&(dow>=1&&dow<=5&&dow-1===S.day);
   const todayDate=dateOfDay(S.day);
   const ds=dateStr(todayDate);
   const cfg=S.dayMap[ds]||null;
@@ -852,8 +914,9 @@ function renderTimetable(){
 
   for(let pi=0;pi<PERIODS.length;pi++){
     const p=PERIODS[pi];
-    const entry=getEntryForDate(S.day,pi,todayDate);
-    const ov=S.ov[`${ds}-${pi}`]||null;
+    const isBase=S.viewMode==='base';
+    const entry=isBase ? getEntry(S.day,pi) : getEntryForDate(S.day,pi,todayDate);
+    const ov=(!isBase&&S.ov[`${ds}-${pi}`])||null;
 
     const startMin=p.start[0]*60+p.start[1];
     const endMin=p.end[0]*60+p.end[1];
@@ -1046,7 +1109,9 @@ function openModal(d,p){
   modalDay=d; modalPeriod=p;
   const pd=PERIODS[p];
   const ew=weekForDate(dateOfDay(d));
-  document.getElementById('modalPeriodInfo').textContent=`${DAYS[d]}曜日 ${pd.n}限 — 現在 ${ew}週`;
+  const viewedDate=dateOfDay(d);
+  const weekLabel=S.weekOffset===0?'今週':S.weekOffset===1?'来週':S.weekOffset===-1?'先週':`${viewedDate.getMonth()+1}/${viewedDate.getDate()}週`;
+  document.getElementById('modalPeriodInfo').textContent=`${weekLabel} ${DAYS[d]}曜日 ${pd.n}限 — ${ew}週`;
 
   const entryW=S.tt[ttKey(d,p,ew)]||null;
   const entryBoth=S.tt[ttKey(d,p,'both')]||null;
@@ -1149,6 +1214,13 @@ function deleteEntry(){
   showToast('削除しました');
 }
 
+function setViewMode(m){
+  S.viewMode=m;
+  document.getElementById('vmBase').classList.toggle('active', m==='base');
+  document.getElementById('vmWeek').classList.toggle('active', m==='week');
+  renderTimetable();
+}
+
 function updateClassName(){
   const v=document.getElementById('inputClassName').value.trim();
   S.className=v;
@@ -1163,6 +1235,7 @@ function showPage(p){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('nav-'+p).classList.add('active');
   document.getElementById('dayTabs').classList.toggle('hidden', p!=='timetable');
+  document.getElementById('weekNav').classList.toggle('hidden', p!=='timetable');
   document.getElementById('weekToggle').classList.toggle('hidden',p!=='overview');
   if(p==='timetable') renderTimetable();
   if(p==='overview') renderOverview();
@@ -1448,6 +1521,8 @@ function renderNotifBtn(){
 document.addEventListener('DOMContentLoaded', function(){
   load(); initCal(); setupDates(); setWeek(S.week);
   document.getElementById('dayTabs').classList.remove('hidden');
+  document.getElementById('weekNav').classList.remove('hidden');
+  document.getElementById('weekToggle').classList.add('hidden');
   // init class name
   document.getElementById('inputClassName').value=S.className||'';
   document.getElementById('headerClassName').textContent=S.className||'時間割';
