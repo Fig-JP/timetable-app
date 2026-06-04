@@ -537,10 +537,6 @@
 <main id="mainContent">
   <!-- Timetable page -->
   <div id="page-timetable" class="page active">
-    <div class="view-mode-toggle">
-      <button class="view-mode-btn active" id="vmBase" onclick="setViewMode('base')">元の時間割</button>
-      <button class="view-mode-btn" id="vmWeek" onclick="setViewMode('week')">この週の変更</button>
-    </div>
     <div class="progress-strip" id="progressStrip">
       <div class="progress-bar-bg" id="progressBarBg"></div>
       <div class="progress-strip-inner">
@@ -557,6 +553,10 @@
 
   <!-- Overview page -->
   <div id="page-overview" class="page">
+    <div class="view-mode-toggle">
+      <button class="view-mode-btn active" id="ovVmBase" onclick="setOvViewMode('base')">元の時間割</button>
+      <button class="view-mode-btn" id="ovVmWeek" onclick="setOvViewMode('week')">この週の変更</button>
+    </div>
     <div class="ov-title">週間一覧</div>
     <button class="save-img-btn" onclick="saveImage()">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -914,9 +914,8 @@ function renderTimetable(){
 
   for(let pi=0;pi<PERIODS.length;pi++){
     const p=PERIODS[pi];
-    const isBase=S.viewMode==='base';
-    const entry=isBase ? getEntry(S.day,pi) : getEntryForDate(S.day,pi,todayDate);
-    const ov=(!isBase&&S.ov[`${ds}-${pi}`])||null;
+    const entry=getEntryForDate(S.day,pi,todayDate);
+    const ov=S.ov[`${ds}-${pi}`]||null;
 
     const startMin=p.start[0]*60+p.start[1];
     const endMin=p.end[0]*60+p.end[1];
@@ -1072,8 +1071,12 @@ function renderOverview(){
   PERIODS.forEach((p,pi)=>{
     grid.innerHTML+=`<div class="ov-pd">${p.n}</div>`;
     for(let di=0;di<5;di++){
-      const entry=S.tt[ttKey(di,pi,S.week)]||S.tt[ttKey(di,pi,'both')]||null;
-      const ov=S.ov[`${dateStr(dateOfDay(di))}-${pi}`];
+      const isBase=S.viewMode==='base';
+      const dt=dateOfDay(di);
+      const entry=isBase
+        ? (S.tt[ttKey(di,pi,S.week)]||S.tt[ttKey(di,pi,'both')]||null)
+        : (getEntryForDate(di,pi,dt));
+      const ov=(!isBase&&S.ov[`${dateStr(dt)}-${pi}`])||null;
       let cls='ov-cell'+(entry?'':' empty')+(ov?` has-${ov.status}`:'');
       const wl=entry?(entry.weekType==='A'?'<span class="ov-wk">A週</span>':entry.weekType==='B'?'<span class="ov-wk">B週</span>':''):'';
       grid.innerHTML+=`<div class="${cls}" onclick="jumpToSlot(${di},${pi})">
@@ -1214,11 +1217,11 @@ function deleteEntry(){
   showToast('削除しました');
 }
 
-function setViewMode(m){
+function setOvViewMode(m){
   S.viewMode=m;
-  document.getElementById('vmBase').classList.toggle('active', m==='base');
-  document.getElementById('vmWeek').classList.toggle('active', m==='week');
-  renderTimetable();
+  document.getElementById('ovVmBase').classList.toggle('active', m==='base');
+  document.getElementById('ovVmWeek').classList.toggle('active', m==='week');
+  renderOverview();
 }
 
 function updateClassName(){
