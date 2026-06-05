@@ -663,7 +663,7 @@
 
     <div class="settings-section">
       <div class="settings-group-label">アプリ情報</div>
-      <div class="settings-row"><span class="settings-row-label">バージョン</span><span class="settings-row-val">1.2.0</span></div>
+      <div class="settings-row"><span class="settings-row-label">バージョン</span><span class="settings-row-val">1.3.0</span></div>
       <div class="settings-row"><span class="settings-row-label">対象</span><span class="settings-row-val">鶴岡工業高等専門学校</span></div>
     </div>
 
@@ -1100,10 +1100,16 @@ function updateProgressStrip(){
 function renderOverview(){
   const now=new Date();
   const off=S.ovWeekOffset||0;
-  const weekLabel=off===0?'今週':off===1?'来週':off===-1?'先週':`${dateOfDayOv(0).getMonth()+1}/${dateOfDayOv(0).getDate()}週`;
-  const modeLabel=S.ovShowBase?'本来の時間割':`${weekLabel}`;
-  document.getElementById('ssTitle').textContent=`鶴岡高専${S.className?' '+S.className:''} 時間割 (${S.week}週)`;
-  document.getElementById('ssMeta').textContent=`${modeLabel} · ${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} 生成`;
+  const mon=dateOfDayOv(0), fri=dateOfDayOv(4);
+  const dateRange=`${mon.getMonth()+1}/${mon.getDate()} 〜 ${fri.getMonth()+1}/${fri.getDate()}`;
+  document.getElementById('ssTitle').textContent=
+    S.ovShowBase
+      ? `鶴岡高専${S.className?' '+S.className:''} 時間割 (${S.week}週)`
+      : `鶴岡高専${S.className?' '+S.className:''} 時間割`;
+  document.getElementById('ssMeta').textContent=
+    S.ovShowBase
+      ? `本来の時間割 · ${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} 生成`
+      : `${dateRange} · ${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} 生成`;
   const container=document.getElementById('weekOverview');
   container.innerHTML='';
   const grid=document.createElement('div'); grid.className='ov-grid';
