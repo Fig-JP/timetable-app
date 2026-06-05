@@ -187,12 +187,17 @@
     }
 
     /* ── Overview controls ── */
-    .ov-controls {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px; gap: 8px;
+    .ov-week-nav-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
     }
     .ov-week-nav { display: flex; align-items: center; gap: 0; }
-    .ov-toggle-wrap { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .ov-date-range { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+    .ov-save-row {
+      display: flex; flex-direction: column;
+      gap: 8px; margin-bottom: 10px;
+    }
+    .ov-toggle-wrap { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .save-img-btn { width: 100%; }
     .ov-toggle-label { font-size: 12px; color: var(--text2); font-weight: 600; white-space: nowrap; }
     .ov-toggle {
       width: 44px; height: 26px; background: var(--bg3); border-radius: 13px;
@@ -534,7 +539,7 @@
       <div class="logo-main">鶴岡高専 <span id="headerClassName"></span></div>
       <div class="logo-sub" id="headerSub">TSURUOKA NIT</div>
     </div>
-    <div class="week-toggle" id="weekToggle">
+    <div class="week-toggle hidden" id="weekToggle">
       <button class="week-btn" id="weekA" onclick="setWeek('A')">A週</button>
       <button class="week-btn" id="weekB" onclick="setWeek('B')">B週</button>
     </div>
@@ -573,23 +578,26 @@
 
   <!-- Overview page -->
   <div id="page-overview" class="page">
-    <div class="ov-controls">
+    <div class="ov-week-nav-row">
       <div class="ov-week-nav" id="ovWeekNav">
         <button class="week-nav-btn" onclick="shiftOvWeek(-1)">‹</button>
         <span class="week-nav-label" id="ovWeekNavLabel" onclick="shiftOvWeek(0)">今週</span>
         <button class="week-nav-btn" onclick="shiftOvWeek(1)">›</button>
       </div>
-      <label class="ov-toggle-wrap">
-        <span class="ov-toggle-label">本来の時間割</span>
-        <div class="ov-toggle" onclick="toggleOvBase()">
+      <span id="ovDateRange" class="ov-date-range"></span>
+    </div>
+    <div class="ov-save-row">
+      <label class="ov-toggle-wrap" onclick="toggleOvBase()">
+        <div class="ov-toggle" id="ovToggle">
           <div class="ov-toggle-knob" id="ovToggleKnob"></div>
         </div>
+        <span class="ov-toggle-label">本来の時間割を表示</span>
       </label>
+      <button class="save-img-btn" onclick="saveImage()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        共有・保存
+      </button>
     </div>
-    <button class="save-img-btn" onclick="saveImage()">
-      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      週間表を共有・保存
-    </button>
     <div id="screenshotTarget">
       <div class="screenshot-header">
         <div>
@@ -1108,8 +1116,7 @@ function renderOverview(){
         : getEntryForDate(di,pi,dt);
       const ov=(!S.ovShowBase&&S.ov[`${dateStr(dt)}-${pi}`])||null;
       let cls='ov-cell'+(entry?'':' empty')+(ov?` has-${ov.status}`:'');
-      const wl=entry?(entry.weekType==='A'?'<span class="ov-wk">A週</span>':entry.weekType==='B'?'<span class="ov-wk">B週</span>':''):'';
-      grid.innerHTML+=`<div class="${cls}" onclick="jumpToSlot(${di},${pi})">
+      const wl=entry&&S.ovShowBase?(entry.weekType==='A'?'<span class="ov-wk">A週</span>':entry.weekType==='B'?'<span class="ov-wk">B週</span>':''):'';      grid.innerHTML+=`<div class="${cls}" onclick="jumpToSlot(${di},${pi})">
         ${entry?`<span class="ov-name">${entry.subject}</span>${wl}`:'·'}
       </div>`;
     }
@@ -1277,15 +1284,30 @@ function updateOvWeekNav(){
   if(off===0){ lbl.textContent='今週'; lbl.classList.add('is-this-week'); }
   else if(off===1){ lbl.textContent='来週'; lbl.classList.remove('is-this-week'); }
   else if(off===-1){ lbl.textContent='先週'; lbl.classList.remove('is-this-week'); }
-  else { const m=dateOfDayOv(0); lbl.textContent=`${m.getMonth()+1}/${m.getDate()}週`; lbl.classList.remove('is-this-week'); }
-  // hide nav when showing base (base has no week context)
-  document.getElementById('ovWeekNav').style.opacity=S.ovShowBase?'0.3':'1';
-  document.getElementById('ovWeekNav').style.pointerEvents=S.ovShowBase?'none':'';
+  else { lbl.textContent=`${off>0?'+':''}${off}週`; lbl.classList.remove('is-this-week'); }
+
+  // 週ナビ: ovShowBaseのとき無効化
+  const nav=document.getElementById('ovWeekNav');
+  nav.style.opacity=S.ovShowBase?'0.3':'1';
+  nav.style.pointerEvents=S.ovShowBase?'none':'';
+
+  // 日付範囲表示（週表示時のみ）
+  const range=document.getElementById('ovDateRange');
+  if(!S.ovShowBase){
+    const mon=dateOfDayOv(0), fri=dateOfDayOv(4);
+    range.textContent=`${mon.getMonth()+1}/${mon.getDate()} 〜 ${fri.getMonth()+1}/${fri.getDate()}`;
+  } else {
+    range.textContent='';
+  }
+
+  // A/B切り替えは ovShowBase のときだけ表示
+  document.getElementById('weekToggle').classList.toggle('hidden', !S.ovShowBase);
+
+  // トグルUI更新
+  document.getElementById('ovToggle').classList.toggle('on', S.ovShowBase);
 }
 function toggleOvBase(){
   S.ovShowBase=!S.ovShowBase;
-  const tog=document.getElementById('ovToggleKnob').parentElement;
-  tog.classList.toggle('on', S.ovShowBase);
   updateOvWeekNav();
   renderOverview();
 }
@@ -1305,7 +1327,7 @@ function showPage(p){
   document.getElementById('nav-'+p).classList.add('active');
   document.getElementById('dayTabs').classList.toggle('hidden', p!=='timetable');
   document.getElementById('weekNav').classList.toggle('hidden', p!=='timetable');
-  document.getElementById('weekToggle').classList.toggle('hidden',p!=='overview');
+  document.getElementById('weekToggle').classList.toggle('hidden', !(p==='overview' && S.ovShowBase));
   if(p==='timetable') renderTimetable();
   if(p==='overview'){ renderOverview(); updateOvWeekNav(); }
   if(p==='settings') requestAnimationFrame(function(){ renderCalendar(); renderNotifBtn(); });
@@ -1590,13 +1612,13 @@ function renderNotifBtn(){
 document.addEventListener('DOMContentLoaded', function(){
   load(); initCal(); setupDates(); setWeek(S.week);
   document.getElementById('dayTabs').classList.remove('hidden');
-  document.getElementById('weekNav').classList.remove('hidden');
-  document.getElementById('weekToggle').classList.add('hidden');
+  // weekNav と weekToggle は showPage が制御するので init では触らない
   // init class name
   document.getElementById('inputClassName').value=S.className||'';
   document.getElementById('headerClassName').textContent=S.className||'時間割';
   document.getElementById('headerSub').textContent=S.className?`${S.className} 時間割`:'TSURUOKA NIT';
-  renderTimetable(); renderOverview();
+  renderOverview();
+  showPage('timetable'); // 初期表示ページを確定し、nav表示状態を統一
   setInterval(updateProgressStrip, 30000);
   expireOldOverrides();
   if('serviceWorker' in navigator){
