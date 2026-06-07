@@ -918,17 +918,20 @@ function weekForDate(dt){
   const ds=dateStr(dt); return S.weekMap[ds]||S.week;
 }
 function getEntry(d,p){
-  // d: 1=Mon...5=Fri in new Sun-start scheme
-  const ttDi=d-1; // convert to 0-based Mon index for tt keys
+  // d: di Sun-start 1=Mon...5=Fri
+  const ttDi=d-1;
   const w=weekForDate(dateOfDay(d));
   return S.tt[ttKey(ttDi,p,w)]||S.tt[ttKey(ttDi,p,'both')]||null;
 }
-function getEntryForDate(ttDi,pi,dt){
-  // ttDi: 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri
+function getEntryForDate(di,pi,dt){
+  // di: Sun-start 0=Sun,1=Mon,...,5=Fri,6=Sat
   const ds=dateStr(dt);
   const cfg=S.dayMap[ds];
   if(cfg&&cfg.hideTT) return null;
-  const actualTtDi=(cfg&&cfg.sub!=null)?cfg.sub:ttDi;
+  // ttDi: 0=Mon...4=Fri (sub stored as ttDi)
+  const baseTtDi=di-1;
+  const actualTtDi=(cfg&&cfg.sub!=null)?cfg.sub:baseTtDi;
+  if(actualTtDi<0||actualTtDi>4) return null; // Sun/Sat have no tt
   const w=weekForDate(dt);
   const base=S.tt[ttKey(actualTtDi,pi,w)]||S.tt[ttKey(actualTtDi,pi,'both')]||null;
   const ov=S.ov[`${ds}-${pi}`];
@@ -1092,10 +1095,10 @@ function renderTimetable(){
     container.appendChild(banner);
   }
 
-  const ttDi=S.day-1; // 0-based Mon index for tt keys
+  const ttDi=S.day-1; // for openModal only
   for(let pi=0;pi<PERIODS.length;pi++){
     const p=PERIODS[pi];
-    const entry=getEntryForDate(S.day,pi,todayDate);
+    const entry=getEntryForDate(S.day,pi,todayDate); // S.day is di (Sun-start)
     const ov=S.ov[`${ds}-${pi}`]||null;
 
     const startMin=p.start[0]*60+p.start[1];
@@ -1264,8 +1267,7 @@ function renderOverview(){
       const dt=dateOfDayOv(di);
       const entry=S.ovShowBase
         ? (S.tt[ttKey(di-1,pi,S.week)]||S.tt[ttKey(di-1,pi,'both')]||null)
-        : getEntryForDate(di,pi,dt);
-      const ov=(!S.ovShowBase&&S.ov[`${dateStr(dt)}-${pi}`])||null;
+        : getEntryForDate(di,pi,dt);      const ov=(!S.ovShowBase&&S.ov[`${dateStr(dt)}-${pi}`])||null;
       let cls='ov-cell'+(entry?'':' empty')+(ov?` has-${ov.status}`:'');
       const wl=entry&&S.ovShowBase?(entry.weekType==='A'?'<span class="ov-wk">A週</span>':entry.weekType==='B'?'<span class="ov-wk">B週</span>':''):'';      grid.innerHTML+=`<div class="${cls}" onclick="jumpToSlot(${di},${pi})">
         ${entry?`<span class="ov-name">${entry.subject}</span>${wl}`:'·'}
