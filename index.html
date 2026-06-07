@@ -153,7 +153,46 @@
     .day-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
     .day-tab .day-name { display: block; font-size: 14px; font-weight: 700; }
     .day-tab .day-date { display: block; font-size: 10px; margin-top: 1px; font-family: 'IBM Plex Mono', monospace; }
-    .day-tab.today .day-name { color: var(--accent); }
+    .day-tab-sat .day-name { color: #3b82f6; }
+    .day-tab-sun .day-name { color: #ef4444; }
+    .day-tab-sat.active, .day-tab-sun.active { border-bottom-color: currentColor; }
+    .day-tab-sat.active .day-name { color: #3b82f6; }
+    .day-tab-sun.active .day-name { color: #ef4444; }
+
+    /* Weekend memo */
+    .wkend-memo-list { display: flex; flex-direction: column; gap: 10px; }
+    .wkend-memo-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 14px 12px;
+      box-shadow: var(--shadow); cursor: pointer;
+      transition: background 0.1s, transform 0.08s;
+      position: relative;
+    }
+    .wkend-memo-card:active { background: var(--bg3); transform: scale(0.985); }
+    .wkend-memo-card .memo-title {
+      font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.3;
+      padding-right: 28px;
+    }
+    .wkend-memo-card .memo-body {
+      font-size: 13px; color: var(--text2); margin-top: 5px;
+      line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+    }
+    .wkend-memo-card .memo-del {
+      position: absolute; top: 10px; right: 10px;
+      background: none; border: none; color: var(--text3);
+      font-size: 16px; cursor: pointer; padding: 4px 6px; border-radius: 6px;
+    }
+    .wkend-memo-card .memo-del:active { background: var(--bg3); }
+    .wkend-add-fab {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 6px;
+      background: var(--accent-bg); border: 1px dashed var(--accent);
+      border-radius: 12px; padding: 12px; color: var(--accent);
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: background 0.1s;
+    }
+    .wkend-add-fab:active { background: var(--bg3); }
+    .wkend-empty { color: var(--text3); font-size: 13px; text-align: center; padding: 20px 0; }
 
     /* ── Week Nav ── */
     .week-nav {
@@ -553,11 +592,13 @@
   <button class="week-nav-btn" onclick="shiftWeek(1)">›</button>
 </div>
 <div class="day-tabs hidden" id="dayTabs">
-  <button class="day-tab" data-day="0" onclick="selectDay(0)"><span class="day-name">月</span><span class="day-date" id="d0"></span></button>
-  <button class="day-tab" data-day="1" onclick="selectDay(1)"><span class="day-name">火</span><span class="day-date" id="d1"></span></button>
-  <button class="day-tab" data-day="2" onclick="selectDay(2)"><span class="day-name">水</span><span class="day-date" id="d2"></span></button>
-  <button class="day-tab" data-day="3" onclick="selectDay(3)"><span class="day-name">木</span><span class="day-date" id="d3"></span></button>
-  <button class="day-tab" data-day="4" onclick="selectDay(4)"><span class="day-name">金</span><span class="day-date" id="d4"></span></button>
+  <button class="day-tab day-tab-sun" data-day="0" onclick="selectDay(0)"><span class="day-name">日</span><span class="day-date" id="d0"></span></button>
+  <button class="day-tab" data-day="1" onclick="selectDay(1)"><span class="day-name">月</span><span class="day-date" id="d1"></span></button>
+  <button class="day-tab" data-day="2" onclick="selectDay(2)"><span class="day-name">火</span><span class="day-date" id="d2"></span></button>
+  <button class="day-tab" data-day="3" onclick="selectDay(3)"><span class="day-name">水</span><span class="day-date" id="d3"></span></button>
+  <button class="day-tab" data-day="4" onclick="selectDay(4)"><span class="day-name">木</span><span class="day-date" id="d4"></span></button>
+  <button class="day-tab" data-day="5" onclick="selectDay(5)"><span class="day-name">金</span><span class="day-date" id="d5"></span></button>
+  <button class="day-tab day-tab-sat" data-day="6" onclick="selectDay(6)"><span class="day-name">土</span><span class="day-date" id="d6"></span></button>
 </div>
 
 <main id="mainContent">
@@ -663,7 +704,7 @@
 
     <div class="settings-section">
       <div class="settings-group-label">アプリ情報</div>
-      <div class="settings-row"><span class="settings-row-label">バージョン</span><span class="settings-row-val">1.3.0</span></div>
+      <div class="settings-row"><span class="settings-row-label">バージョン</span><span class="settings-row-val">1.2.0</span></div>
       <div class="settings-row"><span class="settings-row-label">対象</span><span class="settings-row-val">鶴岡工業高等専門学校</span></div>
     </div>
 
@@ -687,6 +728,27 @@
 </nav>
 
 <!-- Edit Modal -->
+<!-- Memo Edit Modal -->
+<div class="modal-overlay" id="memoModalOverlay" onclick="if(event.target===this)closeMemoModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-heading" id="memoModalTitle">予定を追加</div>
+    <div class="form-group">
+      <label class="form-label">タイトル</label>
+      <input type="text" class="form-input" id="memoInputTitle" placeholder="例：部活、課題、外出など">
+    </div>
+    <div class="form-group">
+      <label class="form-label">内容（任意）</label>
+      <textarea class="form-input" id="memoInputBody" rows="4" placeholder="詳細メモ…" style="resize:vertical;min-height:80px;line-height:1.6"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeMemoModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveMemo()">保存</button>
+      <button class="btn btn-danger" id="memoDeleteBtn" onclick="deleteMemo()" style="display:none">削除</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -824,7 +886,7 @@ const PERIODS = [
   { n:4, t:'14:30\n16:00',start:[14,30], end:[16,0]  },
 ];
 
-let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{}, className:'', weekOffset:0, ovWeekOffset:0, ovShowBase:false };
+let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{}, className:'', weekOffset:0, ovWeekOffset:0, ovShowBase:false, wkend:{} };
 let modalDay=0, modalPeriod=0, selWeek='both', selStatus='normal';
 let calYear=0, calMonth=0;
 let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConfigHideTT=false;
@@ -833,19 +895,21 @@ let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConf
 function load(){
   try {
     const d=JSON.parse(localStorage.getItem('tt-v4')||'{}');
-    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{}; S.className=d.className||'';
+    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{}; S.className=d.className||''; S.wkend=d.wkend||{};
   } catch(e){}
 }
 function save(){
-  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap,className:S.className}));
+  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap,className:S.className,wkend:S.wkend}));
 }
 
 // ── Keys ──
 function ttKey(d,p,w){ return `${d}-${p}-${w}`; }
 function dateOfDay(di){
-  const today=new Date(), dow=today.getDay();
-  const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow)+(S.weekOffset||0)*7);
-  const t=new Date(mon); t.setDate(mon.getDate()+di); return t;
+  // di: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  const today=new Date(), dow=today.getDay(); // 0=Sun
+  // 今週の日曜を基準に
+  const sun=new Date(today); sun.setDate(today.getDate()-dow+(S.weekOffset||0)*7);
+  const t=new Date(sun); t.setDate(sun.getDate()+di); return t;
 }
 function dateStr(dt){
   return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
@@ -854,17 +918,19 @@ function weekForDate(dt){
   const ds=dateStr(dt); return S.weekMap[ds]||S.week;
 }
 function getEntry(d,p){
+  // d: 1=Mon...5=Fri in new Sun-start scheme
+  const ttDi=d-1; // convert to 0-based Mon index for tt keys
   const w=weekForDate(dateOfDay(d));
-  return S.tt[ttKey(d,p,w)]||S.tt[ttKey(d,p,'both')]||null;
+  return S.tt[ttKey(ttDi,p,w)]||S.tt[ttKey(ttDi,p,'both')]||null;
 }
-// Get entry for a specific date (respects dayMap substitution)
-function getEntryForDate(di,pi,dt){
+function getEntryForDate(ttDi,pi,dt){
+  // ttDi: 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri
   const ds=dateStr(dt);
   const cfg=S.dayMap[ds];
   if(cfg&&cfg.hideTT) return null;
-  const actualDi=(cfg&&cfg.sub!=null)?cfg.sub:di;
+  const actualTtDi=(cfg&&cfg.sub!=null)?cfg.sub:ttDi;
   const w=weekForDate(dt);
-  const base=S.tt[ttKey(actualDi,pi,w)]||S.tt[ttKey(actualDi,pi,'both')]||null;
+  const base=S.tt[ttKey(actualTtDi,pi,w)]||S.tt[ttKey(actualTtDi,pi,'both')]||null;
   const ov=S.ov[`${ds}-${pi}`];
   if(base&&ov&&ov.status==='change'&&(ov.changeSubject||ov.changeTeacher||ov.changeRoom)){
     return {
@@ -893,24 +959,19 @@ function selectDay(d){
   renderTimetable();
 }
 function setupDates(){
-  const today=new Date(), dow=today.getDay();
-  for(let i=0;i<5;i++){
+  const today=new Date(), dow=today.getDay(); // 0=Sun
+  for(let i=0;i<7;i++){
     const d=dateOfDay(i);
     document.getElementById(`d${i}`).textContent=`${d.getMonth()+1}/${d.getDate()}`;
-    const isToday=S.weekOffset===0&&i===(dow===0?6:dow-1);
+    const isToday=S.weekOffset===0&&i===dow;
     document.querySelectorAll('.day-tab')[i].classList.toggle('today', isToday);
   }
-  // weekNav label
   const lbl=document.getElementById('weekNavLabel');
   if(S.weekOffset===0){ lbl.textContent='今週'; lbl.classList.add('is-this-week'); }
   else if(S.weekOffset===1){ lbl.textContent='来週'; lbl.classList.remove('is-this-week'); }
   else if(S.weekOffset===-1){ lbl.textContent='先週'; lbl.classList.remove('is-this-week'); }
-  else {
-    const mon=dateOfDay(0);
-    lbl.textContent=`${mon.getMonth()+1}/${mon.getDate()}週`;
-    lbl.classList.remove('is-this-week');
-  }
-  if(S.weekOffset===0&&dow>=1&&dow<=5) S.day=dow-1;
+  else { const mon=dateOfDay(0); lbl.textContent=`${mon.getMonth()+1}/${mon.getDate()}週`; lbl.classList.remove('is-this-week'); }
+  if(S.weekOffset===0){ S.day=dow; } // di=dow (0=Sun...6=Sat)
   selectDay(S.day);
 }
 
@@ -918,6 +979,44 @@ function shiftWeek(delta){
   if(delta===0){ S.weekOffset=0; }
   else { S.weekOffset=(S.weekOffset||0)+delta; }
   setupDates();
+}
+
+// ── Weekend memo helpers ──
+let _memoDay=0, _memoIdx=-1;
+
+function wkendKey(di){ return dateStr(dateOfDay(di)); }
+
+function openMemoModal(di, idx){
+  if(idx===undefined) idx=-1;
+  _memoDay=di; _memoIdx=idx;
+  const isEdit=idx>=0;
+  document.getElementById('memoModalTitle').textContent=isEdit?'予定を編集':'予定を追加';
+  const k=wkendKey(di);
+  const rawItem=isEdit&&S.wkend[k]?S.wkend[k][idx]:null;
+  const item=rawItem?(typeof rawItem==='string'?{title:rawItem,body:''}:rawItem):null;
+  document.getElementById('memoInputTitle').value=item?item.title||'':'';
+  document.getElementById('memoInputBody').value=item?item.body||'':'';
+  document.getElementById('memoDeleteBtn').style.display=isEdit?'inline-flex':'none';
+  document.getElementById('memoModalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('memoInputTitle').focus(),100);
+}
+function closeMemoModal(){
+  document.getElementById('memoModalOverlay').classList.remove('open');
+}
+function saveMemo(){
+  const title=document.getElementById('memoInputTitle').value.trim();
+  if(!title){ showToast('タイトルを入力してください'); return; }
+  const body=document.getElementById('memoInputBody').value.trim();
+  const k=wkendKey(_memoDay);
+  if(!S.wkend[k]) S.wkend[k]=[];
+  if(_memoIdx>=0) S.wkend[k][_memoIdx]={title,body};
+  else S.wkend[k].push({title,body});
+  save(); closeMemoModal(); renderTimetable();
+}
+function deleteMemo(){
+  const k=wkendKey(_memoDay);
+  if(S.wkend[k]){ S.wkend[k].splice(_memoIdx,1); if(!S.wkend[k].length) delete S.wkend[k]; }
+  save(); closeMemoModal(); renderTimetable();
 }
 
 // ── Render Timetable (single-day list) ──
@@ -928,7 +1027,51 @@ function renderTimetable(){
 
   const now=new Date(), dow=now.getDay();
   const hm=now.getHours()*60+now.getMinutes();
-  const isToday=(S.weekOffset||0)===0&&(dow>=1&&dow<=5&&dow-1===S.day);
+  const isWeekend=(S.day===0||S.day===6);
+  const isToday=(S.weekOffset||0)===0&&(dow===S.day);
+
+  if(isWeekend){
+    document.getElementById('progressStrip').classList.remove('visible');
+    const k=wkendKey(S.day);
+    const items=S.wkend[k]||[];
+    const dayName=S.day===6?'土曜日':'日曜日';
+    const dt=dateOfDay(S.day);
+    const dateLabel=`${dt.getMonth()+1}/${dt.getDate()}（${dayName}）`;
+
+    const header=document.createElement('div');
+    header.className='day-info-banner';
+    header.textContent=dateLabel;
+    container.appendChild(header);
+
+    const list=document.createElement('div');
+    list.className='wkend-memo-list';
+    if(items.length===0){
+      list.innerHTML=`<div class="wkend-empty">予定はありません</div>`;
+    } else {
+      items.forEach((item,idx)=>{
+        // 旧形式（文字列）との互換
+        if(typeof item==='string') item={title:item,body:''};
+        const card=document.createElement('div');
+        card.className='wkend-memo-card';
+        card.innerHTML=`
+          <div class="memo-title">${item.title||''}</div>
+          ${item.body?`<div class="memo-body">${item.body}</div>`:''}
+          <button class="memo-del" onclick="event.stopPropagation();openMemoModal(${S.day},${idx})">✎</button>
+        `;
+        card.onclick=()=>openMemoModal(S.day,idx);
+        list.appendChild(card);
+      });
+    }
+    container.appendChild(list);
+
+    const fab=document.createElement('button');
+    fab.className='wkend-add-fab';
+    fab.innerHTML='＋ 予定を追加';
+    fab.onclick=()=>openMemoModal(S.day);
+    container.appendChild(fab);
+    return;
+  }
+
   const todayDate=dateOfDay(S.day);
   const ds=dateStr(todayDate);
   const cfg=S.dayMap[ds]||null;
@@ -949,6 +1092,7 @@ function renderTimetable(){
     container.appendChild(banner);
   }
 
+  const ttDi=S.day-1; // 0-based Mon index for tt keys
   for(let pi=0;pi<PERIODS.length;pi++){
     const p=PERIODS[pi];
     const entry=getEntryForDate(S.day,pi,todayDate);
@@ -974,7 +1118,7 @@ function renderTimetable(){
     if(isNow) cls+=' is-now';
     if(isPast) cls+=' is-past';
     cell.className=cls;
-    cell.onclick=()=>openModal(S.day,pi);
+    cell.onclick=()=>openModal(ttDi,pi);
 
     if(isNow) cell.innerHTML=`<div class="cell-now-bar"></div>`;
 
@@ -1017,7 +1161,7 @@ function updateProgressStrip(){
   if(dow<1||dow>5){ strip.classList.remove('visible'); return; }
 
   const hm=now.getHours()*60+now.getMinutes();
-  const todayDayIdx=dow-1;
+  const todayDayIdx=dow; // di=dow in Sun-start scheme
   const todayDt=dateOfDay(todayDayIdx);
   const todayDs=dateStr(todayDt);
 
@@ -1116,10 +1260,10 @@ function renderOverview(){
   grid.innerHTML=`<div class="ov-hd"></div>${DAYS.map(d=>`<div class="ov-hd">${d}</div>`).join('')}`;
   PERIODS.forEach((p,pi)=>{
     grid.innerHTML+=`<div class="ov-pd">${p.n}</div>`;
-    for(let di=0;di<5;di++){
+    for(let di=1;di<=5;di++){ // 1=Mon...5=Fri
       const dt=dateOfDayOv(di);
       const entry=S.ovShowBase
-        ? (S.tt[ttKey(di,pi,S.week)]||S.tt[ttKey(di,pi,'both')]||null)
+        ? (S.tt[ttKey(di-1,pi,S.week)]||S.tt[ttKey(di-1,pi,'both')]||null)
         : getEntryForDate(di,pi,dt);
       const ov=(!S.ovShowBase&&S.ov[`${dateStr(dt)}-${pi}`])||null;
       let cls='ov-cell'+(entry?'':' empty')+(ov?` has-${ov.status}`:'');
@@ -1130,9 +1274,10 @@ function renderOverview(){
   });
   container.appendChild(grid);
 }
-function jumpToSlot(d,p){
-  S.day=d; selectDay(d); showPage('timetable');
-  setTimeout(()=>openModal(d,p),120);
+function jumpToSlot(di,p){
+  // di: Sun-start 1=Mon...5=Fri, openModal wants ttDi=di-1
+  S.day=di; selectDay(di); showPage('timetable');
+  setTimeout(()=>openModal(di-1,p),120);
 }
 
 // ── Save Image ──
@@ -1166,10 +1311,12 @@ async function saveImage(){
 
 // ── Modal ──
 function openModal(d,p){
+  // d = ttDi: 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri
   modalDay=d; modalPeriod=p;
   const pd=PERIODS[p];
-  const ew=weekForDate(dateOfDay(d));
-  const viewedDate=dateOfDay(d);
+  const di=d+1; // Sun-start di: 1=Mon...5=Fri
+  const ew=weekForDate(dateOfDay(di));
+  const viewedDate=dateOfDay(di);
   const weekLabel=S.weekOffset===0?'今週':S.weekOffset===1?'来週':S.weekOffset===-1?'先週':`${viewedDate.getMonth()+1}/${viewedDate.getDate()}週`;
   document.getElementById('modalPeriodInfo').textContent=`${weekLabel} ${DAYS[d]}曜日 ${pd.n}限 — ${ew}週`;
 
@@ -1178,14 +1325,14 @@ function openModal(d,p){
   const entry=entryW||entryBoth;
   selWeek=entryW?ew:entryBoth?'both':'both';
 
-  document.getElementById('inputSubject').value=entry?.subject||'';
-  document.getElementById('inputTeacher').value=entry?.teacher||'';
-  document.getElementById('inputRoom').value=entry?.room||'';
+  document.getElementById('inputSubject').value=(entry&&entry.subject)||'';
+  document.getElementById('inputTeacher').value=(entry&&entry.teacher)||'';
+  document.getElementById('inputRoom').value=(entry&&entry.room)||'';
 
   const hasAny=!!(S.tt[ttKey(d,p,'A')]||S.tt[ttKey(d,p,'B')]||S.tt[ttKey(d,p,'both')]);
   document.getElementById('deleteBtn').style.display=hasAny?'block':'none';
 
-  const defaultDate=dateStr(dateOfDay(d));
+  const defaultDate=dateStr(dateOfDay(di));
   document.getElementById('inputOverrideDate').value=defaultDate;
   const ov=S.ov[`${defaultDate}-${p}`]||null;
   selStatus=ov?ov.status:'normal';
@@ -1275,9 +1422,10 @@ function deleteEntry(){
 }
 
 function dateOfDayOv(di){
+  // di: 0=Sun, 1=Mon, ..., 6=Sat
   const today=new Date(), dow=today.getDay();
-  const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow)+(S.ovWeekOffset||0)*7);
-  const t=new Date(mon); t.setDate(mon.getDate()+di); return t;
+  const sun=new Date(today); sun.setDate(today.getDate()-dow+(S.ovWeekOffset||0)*7);
+  const t=new Date(sun); t.setDate(sun.getDate()+di); return t;
 }
 function shiftOvWeek(delta){
   S.ovWeekOffset = delta===0 ? 0 : (S.ovWeekOffset||0)+delta;
@@ -1534,7 +1682,7 @@ function exportData(){
   const defaultName=S.className?`tsuruoka-${S.className}`:'tsuruoka-timetable';
   const name=(prompt('保存ファイル名を入力（拡張子なし）',defaultName)||'').trim();
   if(!name) return;
-  const blob=new Blob([JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,dayMap:S.dayMap,className:S.className},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,dayMap:S.dayMap,className:S.className,wkend:S.wkend},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=name+'.json'; a.click();
 }
@@ -1545,7 +1693,7 @@ function importData(){
     r.onload=ev=>{
       try{
         const d=JSON.parse(ev.target.result);
-        S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.dayMap=d.dayMap||{}; S.className=d.className||'';
+        S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.dayMap=d.dayMap||{}; S.className=d.className||''; S.wkend=d.wkend||{};
         document.getElementById('inputClassName').value=S.className;
         document.getElementById('headerClassName').textContent=S.className||'時間割';
         document.getElementById('headerSub').textContent=S.className?`${S.className} 時間割`:'TSURUOKA NIT';
@@ -1567,7 +1715,7 @@ function scheduleNotifications(){
   if(!('Notification' in window)||Notification.permission!=='granted') return;
   const now=new Date(), dow=now.getDay();
   if(dow<1||dow>5) return;
-  const todayDayIdx=dow-1;
+  const todayDayIdx=dow; // di=dow in Sun-start scheme
   const todayDt=dateOfDay(todayDayIdx);
   const todayDate=dateStr(todayDt);
   const hm=now.getHours()*60+now.getMinutes();
