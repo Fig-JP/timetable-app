@@ -564,9 +564,16 @@
       background: var(--bg);
       display: flex; flex-direction: column;
       padding: max(48px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom));
+      opacity: 1;
+      transform: translateY(0) scale(1);
       transition: opacity 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1);
+      will-change: opacity, transform;
     }
-    #splash.hidden { opacity: 0; pointer-events: none; transform: translateY(-16px) scale(0.98); }
+    #splash.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-20px) scale(0.97);
+    }
     .splash-header { margin-bottom: 24px; }
     .splash-greeting { font-size: 13px; color: var(--text3); font-weight: 600; letter-spacing: 0.04em; margin-bottom: 4px; }
     .splash-date { font-size: 28px; font-weight: 700; line-height: 1.2; }
@@ -1797,8 +1804,9 @@ function buildSplash(){
   });
 }
 function dismissSplash(){
-  document.getElementById('splash').classList.add('hidden');
-  setTimeout(function(){ document.getElementById('splash').style.display='none'; },520);
+  const el=document.getElementById('splash');
+  if(!el||el.classList.contains('hidden')) return;
+  el.classList.add('hidden');
 }
 
 // ── ICS Export ──
