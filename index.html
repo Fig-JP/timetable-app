@@ -13,7 +13,7 @@
   <title>鶴岡高専 時間割</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root {
       --bg:        #f5f5f5;
@@ -159,7 +159,60 @@
     .day-tab-sat.active .day-name { color: #3b82f6; }
     .day-tab-sun.active .day-name { color: #ef4444; }
 
-    /* Weekend memo */
+    /* ── Tasks ── */
+    .task-add-fab {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-bottom: 12px;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 12px; padding: 13px; font-size: 14px;
+      font-weight: 700; cursor: pointer; font-family: 'Noto Sans JP', sans-serif;
+    }
+    .task-filters {
+      display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto;
+      -webkit-overflow-scrolling: touch; padding-bottom: 2px;
+    }
+    .task-filter-btn {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600;
+      color: var(--text2); cursor: pointer; white-space: nowrap;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .task-filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .task-list { display: flex; flex-direction: column; gap: 8px; }
+    .task-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 14px;
+      display: flex; align-items: flex-start; gap: 12px;
+      box-shadow: var(--shadow); cursor: pointer;
+      transition: background 0.1s, transform 0.08s;
+    }
+    .task-card:active { background: var(--bg3); transform: scale(0.985); }
+    .task-card.done { opacity: 0.5; }
+    .task-card.overdue { border-color: var(--cancel); }
+    .task-check {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid var(--border); flex-shrink: 0; margin-top: 1px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .task-card.done .task-check { background: var(--accent); border-color: var(--accent); color: #fff; font-size: 13px; }
+    .task-card.overdue .task-check { border-color: var(--cancel); }
+    .task-body { flex: 1; min-width: 0; }
+    .task-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .task-card.done .task-title { text-decoration: line-through; color: var(--text3); }
+    .task-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+    .task-subject { font-size: 11px; color: var(--text2); background: var(--bg3); padding: 2px 8px; border-radius: 10px; }
+    .task-due { font-size: 11px; font-family: 'IBM Plex Mono', monospace; }
+    .task-due.soon { color: var(--change); font-weight: 700; }
+    .task-due.overdue { color: var(--cancel); font-weight: 700; }
+    .task-due.ok { color: var(--text3); }
+    .task-memo { font-size: 12px; color: var(--text2); margin-top: 4px; }
+    .task-empty { text-align: center; color: var(--text3); font-size: 13px; padding: 32px 0; }
+
+    /* ── QR Modal ── */
+    .qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 8px 0; }
+    .qr-wrap canvas { border-radius: 12px; }
+    .qr-note { font-size: 12px; color: var(--text2); text-align: center; line-height: 1.6; }
     .wkend-memo-list { display: flex; flex-direction: column; gap: 10px; }
     .wkend-memo-card {
       background: var(--bg2); border: 1px solid var(--border);
@@ -652,6 +705,17 @@
     </div>
   </div>
 
+  <!-- Tasks page -->
+  <div id="page-tasks" class="page">
+    <button class="task-add-fab" onclick="openTaskModal()">＋ 課題を追加</button>
+    <div class="task-filters">
+      <button class="task-filter-btn active" id="tf-all"     onclick="setTaskFilter('all')">すべて</button>
+      <button class="task-filter-btn"        id="tf-pending" onclick="setTaskFilter('pending')">未完了</button>
+      <button class="task-filter-btn"        id="tf-done"    onclick="setTaskFilter('done')">完了済み</button>
+    </div>
+    <div class="task-list" id="taskList"></div>
+  </div>
+
   <!-- Settings page -->
   <div id="page-settings" class="page">
     <div class="settings-title">設定</div>
@@ -689,6 +753,13 @@
     </div>
 
     <div class="settings-section">
+      <div class="settings-group-label">共有</div>
+      <div class="settings-row" onclick="openQrModal()">
+        <span class="settings-row-label">時間割をQRコードで共有</span>
+        <span class="settings-row-val">→</span>
+      </div>
+    </div>
+    <div class="settings-section">
       <div class="settings-group-label">通知</div>
       <div class="settings-row" onclick="requestNotifPermission()">
         <span class="settings-row-label">授業開始通知（3分前）</span>
@@ -721,11 +792,59 @@
     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
     一覧
   </button>
+  <button class="nav-btn" id="nav-tasks" onclick="showPage('tasks')">
+    <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    課題
+  </button>
   <button class="nav-btn" id="nav-settings" onclick="showPage('settings')">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     設定
   </button>
 </nav>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="taskModalOverlay" onclick="if(event.target===this)closeTaskModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-heading" id="taskModalTitle">課題を追加</div>
+    <div class="form-group">
+      <label class="form-label">タイトル</label>
+      <input type="text" class="form-input" id="taskInputTitle" placeholder="例：レポート提出、小テスト対策">
+    </div>
+    <div class="form-group">
+      <label class="form-label">科目</label>
+      <select class="form-input" id="taskInputSubject"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">締切日</label>
+      <input type="date" class="form-input" id="taskInputDue">
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ（任意）</label>
+      <textarea class="form-input" id="taskInputMemo" rows="3" placeholder="詳細…" style="resize:vertical;min-height:64px;line-height:1.6"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeTaskModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveTask()">保存</button>
+      <button class="btn btn-danger" id="taskDeleteBtn" onclick="deleteTask()" style="display:none">削除</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR Modal -->
+<div class="modal-overlay" id="qrModalOverlay" onclick="if(event.target===this)closeQrModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-heading">時間割を共有</div>
+    <div class="qr-wrap">
+      <canvas id="qrCanvas"></canvas>
+      <div class="qr-note">このQRコードを相手に読み取ってもらうと<br>時間割データをインポートできます</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeQrModal()">閉じる</button>
+    </div>
+  </div>
+</div>
 
 <!-- Edit Modal -->
 <!-- Memo Edit Modal -->
@@ -886,7 +1005,7 @@ const PERIODS = [
   { n:4, t:'14:30\n16:00',start:[14,30], end:[16,0]  },
 ];
 
-let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{}, className:'', weekOffset:0, ovWeekOffset:0, ovShowBase:false, wkend:{} };
+let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{}, className:'', weekOffset:0, ovWeekOffset:0, ovShowBase:false, wkend:{}, tasks:[] };
 let modalDay=0, modalPeriod=0, selWeek='both', selStatus='normal';
 let calYear=0, calMonth=0;
 let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConfigHideTT=false;
@@ -895,11 +1014,11 @@ let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConf
 function load(){
   try {
     const d=JSON.parse(localStorage.getItem('tt-v4')||'{}');
-    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{}; S.className=d.className||''; S.wkend=d.wkend||{};
+    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{}; S.className=d.className||''; S.wkend=d.wkend||{}; S.tasks=d.tasks||[];
   } catch(e){}
 }
 function save(){
-  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap,className:S.className,wkend:S.wkend}));
+  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap,className:S.className,wkend:S.wkend,tasks:S.tasks}));
 }
 
 // ── Keys ──
@@ -1282,7 +1401,158 @@ function jumpToSlot(di,p){
   setTimeout(()=>openModal(di-1,p),120);
 }
 
-// ── Save Image ──
+// ── Tasks ──
+let _taskIdx=-1, _taskFilter='all';
+
+function allSubjects(){
+  const set=new Set();
+  Object.values(S.tt).forEach(e=>{ if(e&&e.subject) set.add(e.subject); });
+  return Array.from(set).sort();
+}
+
+function openTaskModal(idx){
+  if(idx===undefined) idx=-1;
+  _taskIdx=idx;
+  const isEdit=idx>=0;
+  document.getElementById('taskModalTitle').textContent=isEdit?'課題を編集':'課題を追加';
+  document.getElementById('taskDeleteBtn').style.display=isEdit?'inline-flex':'none';
+
+  // populate subject select
+  const sel=document.getElementById('taskInputSubject');
+  sel.innerHTML='<option value="">科目を選択…</option>';
+  allSubjects().forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+
+  const t=isEdit?S.tasks[idx]:null;
+  document.getElementById('taskInputTitle').value=t?t.title:'';
+  sel.value=t?t.subject||'':'';
+  document.getElementById('taskInputDue').value=t?t.due||'':'';
+  document.getElementById('taskInputMemo').value=t?t.memo||'':'';
+
+  document.getElementById('taskModalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('taskInputTitle').focus(),100);
+}
+function closeTaskModal(){ document.getElementById('taskModalOverlay').classList.remove('open'); }
+
+function saveTask(){
+  const title=document.getElementById('taskInputTitle').value.trim();
+  if(!title){ showToast('タイトルを入力してください'); return; }
+  const task={
+    id: _taskIdx>=0?S.tasks[_taskIdx].id:Date.now(),
+    title,
+    subject: document.getElementById('taskInputSubject').value,
+    due: document.getElementById('taskInputDue').value,
+    memo: document.getElementById('taskInputMemo').value.trim(),
+    done: _taskIdx>=0?S.tasks[_taskIdx].done:false
+  };
+  if(_taskIdx>=0) S.tasks[_taskIdx]=task;
+  else S.tasks.push(task);
+  save(); closeTaskModal(); renderTasks();
+}
+function deleteTask(){
+  if(_taskIdx>=0) S.tasks.splice(_taskIdx,1);
+  save(); closeTaskModal(); renderTasks();
+}
+function toggleTaskDone(idx, e){
+  e.stopPropagation();
+  S.tasks[idx].done=!S.tasks[idx].done;
+  save(); renderTasks();
+}
+
+function setTaskFilter(f){
+  _taskFilter=f;
+  ['all','pending','done'].forEach(k=>{
+    document.getElementById('tf-'+k).classList.toggle('active',k===f);
+  });
+  renderTasks();
+}
+
+function renderTasks(){
+  const container=document.getElementById('taskList');
+  if(!container) return;
+  const now=new Date(); now.setHours(0,0,0,0);
+
+  let list=S.tasks.slice();
+  if(_taskFilter==='pending') list=list.filter(t=>!t.done);
+  if(_taskFilter==='done')    list=list.filter(t=>t.done);
+
+  // sort: undone first by due date, done last
+  list.sort((a,b)=>{
+    if(a.done!==b.done) return a.done?1:-1;
+    if(!a.due&&!b.due) return 0;
+    if(!a.due) return 1; if(!b.due) return -1;
+    return a.due.localeCompare(b.due);
+  });
+
+  container.innerHTML='';
+  if(list.length===0){
+    container.innerHTML='<div class="task-empty">課題はありません 🎉</div>';
+    return;
+  }
+
+  list.forEach(task=>{
+    const origIdx=S.tasks.indexOf(task);
+    const card=document.createElement('div');
+    let cls='task-card';
+    if(task.done) cls+=' done';
+
+    let dueStr='', dueCls='task-due ok';
+    if(task.due){
+      const d=new Date(task.due); d.setHours(0,0,0,0);
+      const diff=Math.round((d-now)/(1000*60*60*24));
+      if(!task.done){
+        if(diff<0){ dueStr=`期限切れ`; dueCls='task-due overdue'; cls+=' overdue'; }
+        else if(diff===0){ dueStr=`今日まで`; dueCls='task-due soon'; }
+        else if(diff<=3){ dueStr=`あと${diff}日`; dueCls='task-due soon'; }
+        else { dueStr=`${task.due.replace(/-/g,'/')}`; }
+      } else {
+        dueStr=task.due.replace(/-/g,'/');
+      }
+    }
+
+    card.className=cls;
+    card.innerHTML=`
+      <div class="task-check" onclick="toggleTaskDone(${origIdx},event)">${task.done?'✓':''}</div>
+      <div class="task-body">
+        <div class="task-title">${task.title}</div>
+        <div class="task-meta">
+          ${task.subject?`<span class="task-subject">${task.subject}</span>`:''}
+          ${dueStr?`<span class="${dueCls}">${dueStr}</span>`:''}
+        </div>
+        ${task.memo?`<div class="task-memo">${task.memo}</div>`:''}
+      </div>
+    `;
+    card.onclick=()=>openTaskModal(origIdx);
+    container.appendChild(card);
+  });
+}
+
+// ── QR Share ──
+function openQrModal(){
+  const data=JSON.stringify({tt:S.tt,className:S.className,weekMap:S.weekMap,dayMap:S.dayMap});
+  const canvas=document.getElementById('qrCanvas');
+  canvas.width=0; canvas.height=0;
+  // QRCode.js を使用
+  const wrap=document.createElement('div');
+  new QRCode(wrap,{
+    text: data,
+    width: 240, height: 240,
+    colorDark: '#000', colorLight: '#fff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  setTimeout(()=>{
+    const img=wrap.querySelector('img')||wrap.querySelector('canvas');
+    const ctx=canvas.getContext('2d');
+    const size=240;
+    canvas.width=size; canvas.height=size;
+    if(img.tagName==='IMG'){
+      const i=new Image(); i.onload=()=>ctx.drawImage(i,0,0,size,size); i.src=img.src;
+    } else {
+      ctx.drawImage(img,0,0,size,size);
+    }
+  },100);
+  document.getElementById('qrModalOverlay').classList.add('open');
+}
+function closeQrModal(){ document.getElementById('qrModalOverlay').classList.remove('open'); }
 async function saveImage(){
   showToast('画像を生成中…');
   try {
@@ -1487,6 +1757,7 @@ function showPage(p){
   document.getElementById('weekToggle').classList.toggle('hidden', !(p==='overview' && S.ovShowBase));
   if(p==='timetable') renderTimetable();
   if(p==='overview'){ renderOverview(); updateOvWeekNav(); }
+  if(p==='tasks') renderTasks();
   if(p==='settings') requestAnimationFrame(function(){ renderCalendar(); renderNotifBtn(); });
 }
 
