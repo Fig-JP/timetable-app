@@ -13,7 +13,6 @@
   <title>鶴岡高専 時間割</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root {
       --bg:        #f5f5f5;
@@ -209,10 +208,48 @@
     .task-memo { font-size: 12px; color: var(--text2); margin-top: 4px; }
     .task-empty { text-align: center; color: var(--text3); font-size: 13px; padding: 32px 0; }
 
-    /* ── QR Modal ── */
-    .qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 8px 0; }
-    .qr-wrap canvas { border-radius: 12px; }
-    .qr-note { font-size: 12px; color: var(--text2); text-align: center; line-height: 1.6; }
+    /* ── Attendance ── */
+    .attend-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 14px 12px;
+      box-shadow: var(--shadow); margin-bottom: 8px;
+    }
+    .attend-card.danger { border-color: var(--cancel); background: var(--cancel-bg); }
+    .attend-card.warning { border-color: var(--change); background: var(--change-bg); }
+    .attend-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .attend-subject { font-size: 15px; font-weight: 700; }
+    .attend-status { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 10px; }
+    .attend-status.ok     { background: var(--bg3); color: var(--text2); }
+    .attend-status.warn   { background: var(--change-bg); color: var(--change); border: 1px solid var(--change); }
+    .attend-status.danger { background: var(--cancel-bg); color: var(--cancel); border: 1px solid var(--cancel); }
+    .attend-bar-wrap { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+    .attend-bar { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.3s; }
+    .attend-card.warning .attend-bar { background: var(--change); }
+    .attend-card.danger  .attend-bar { background: var(--cancel); }
+    .attend-counts { display: flex; align-items: center; justify-content: space-between; }
+    .attend-nums { font-size: 12px; color: var(--text2); }
+    .attend-nums strong { color: var(--text); font-size: 14px; }
+    .attend-btns { display: flex; gap: 6px; }
+    .attend-btn {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; padding: 5px 12px; font-size: 13px;
+      font-weight: 700; cursor: pointer; font-family: 'Noto Sans JP', sans-serif;
+      color: var(--text);
+    }
+    .attend-btn.minus { color: var(--cancel); border-color: var(--cancel); }
+    .attend-btn.plus  { color: var(--accent); border-color: var(--accent); }
+    .attend-setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid var(--border); gap: 12px;
+    }
+    .attend-setting-row:last-child { border-bottom: none; }
+    .attend-setting-label { font-size: 14px; font-weight: 600; flex: 1; }
+    .attend-setting-input {
+      width: 64px; text-align: center; background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 6px 8px; font-size: 14px; color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+    }
     .wkend-memo-list { display: flex; flex-direction: column; gap: 10px; }
     .wkend-memo-card {
       background: var(--bg2); border: 1px solid var(--border);
@@ -521,7 +558,49 @@
     .cal-legend-dot.a { background: var(--week-a); }
     .cal-legend-dot.b { background: var(--week-b); }
 
-    /* ── Modal ── */
+    /* ── Splash Screen ── */
+    #splash {
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      padding: max(48px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom));
+      transition: opacity 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    #splash.hidden { opacity: 0; pointer-events: none; transform: translateY(-16px) scale(0.98); }
+    .splash-header { margin-bottom: 24px; }
+    .splash-greeting { font-size: 13px; color: var(--text3); font-weight: 600; letter-spacing: 0.04em; margin-bottom: 4px; }
+    .splash-date { font-size: 28px; font-weight: 700; line-height: 1.2; }
+    .splash-date-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+    .splash-now-label { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+    .splash-now-card {
+      background: var(--accent); color: #fff;
+      border-radius: 16px; padding: 16px 18px; margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0,100,255,0.2);
+    }
+    .splash-now-card .sn-label { font-size: 11px; font-weight: 700; opacity: 0.8; margin-bottom: 4px; }
+    .splash-now-card .sn-subject { font-size: 22px; font-weight: 700; line-height: 1.2; }
+    .splash-now-card .sn-meta { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+    .splash-now-card .sn-bar-wrap { height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+    .splash-now-card .sn-bar { height: 100%; background: #fff; border-radius: 2px; }
+    .splash-upcoming-label { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+    .splash-upcoming-list { display: flex; flex-direction: column; gap: 6px; flex: 1; overflow: hidden; }
+    .splash-upcoming-item {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 14px;
+    }
+    .sui-period { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 700; color: var(--accent); min-width: 28px; }
+    .sui-body { flex: 1; min-width: 0; }
+    .sui-subject { font-size: 14px; font-weight: 700; }
+    .sui-time { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; }
+    .sui-room { font-size: 11px; color: var(--text2); }
+    .splash-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text3); }
+    .splash-empty-icon { font-size: 48px; }
+    .splash-empty-msg { font-size: 14px; font-weight: 600; }
+    .splash-tap-hint {
+      text-align: center; font-size: 12px; color: var(--text3);
+      margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);
+    }
     .modal-overlay {
       position: fixed; inset: 0; z-index: 200;
       background: rgba(0,0,0,0.4);
@@ -626,6 +705,19 @@
 </head>
 <body>
 
+<!-- Splash Screen -->
+<div id="splash" onclick="dismissSplash()">
+  <div class="splash-header">
+    <div class="splash-greeting" id="splashGreeting">おはようございます</div>
+    <div class="splash-date" id="splashDate"></div>
+    <div class="splash-date-sub" id="splashDateSub"></div>
+  </div>
+  <div id="splashNowWrap"></div>
+  <div class="splash-upcoming-label" id="splashUpcomingLabel">今日の授業</div>
+  <div class="splash-upcoming-list" id="splashUpcomingList"></div>
+  <div class="splash-tap-hint">タップして時間割を開く</div>
+</div>
+
 <header>
   <div class="header-inner">
     <div>
@@ -705,15 +797,29 @@
     </div>
   </div>
 
-  <!-- Tasks page -->
+  <!-- Tasks/Attendance page -->
   <div id="page-tasks" class="page">
-    <button class="task-add-fab" onclick="openTaskModal()">＋ 課題を追加</button>
-    <div class="task-filters">
-      <button class="task-filter-btn active" id="tf-all"     onclick="setTaskFilter('all')">すべて</button>
-      <button class="task-filter-btn"        id="tf-pending" onclick="setTaskFilter('pending')">未完了</button>
-      <button class="task-filter-btn"        id="tf-done"    onclick="setTaskFilter('done')">完了済み</button>
+    <div class="view-mode-toggle" style="margin-bottom:12px">
+      <button class="view-mode-btn active" id="tabTask" onclick="setSubTab('task')">課題</button>
+      <button class="view-mode-btn" id="tabAttend" onclick="setSubTab('attend')">出席</button>
     </div>
-    <div class="task-list" id="taskList"></div>
+
+    <!-- 課題セクション -->
+    <div id="sectionTask">
+      <button class="task-add-fab" onclick="openTaskModal()">＋ 課題を追加</button>
+      <div class="task-filters">
+        <button class="task-filter-btn active" id="tf-all"     onclick="setTaskFilter('all')">すべて</button>
+        <button class="task-filter-btn"        id="tf-pending" onclick="setTaskFilter('pending')">未完了</button>
+        <button class="task-filter-btn"        id="tf-done"    onclick="setTaskFilter('done')">完了済み</button>
+      </div>
+      <div class="task-list" id="taskList"></div>
+    </div>
+
+    <!-- 出席セクション -->
+    <div id="sectionAttend" style="display:none">
+      <button class="task-add-fab" style="background:var(--bg2);color:var(--accent);border:1px solid var(--accent)" onclick="openAttendSettingsModal()">⚙ 科目ごとの上限を設定</button>
+      <div id="attendList"></div>
+    </div>
   </div>
 
   <!-- Settings page -->
@@ -753,13 +859,6 @@
     </div>
 
     <div class="settings-section">
-      <div class="settings-group-label">共有</div>
-      <div class="settings-row" onclick="openQrModal()">
-        <span class="settings-row-label">時間割をQRコードで共有</span>
-        <span class="settings-row-val">→</span>
-      </div>
-    </div>
-    <div class="settings-section">
       <div class="settings-group-label">通知</div>
       <div class="settings-row" onclick="requestNotifPermission()">
         <span class="settings-row-label">授業開始通知（3分前）</span>
@@ -770,12 +869,13 @@
       <div class="settings-group-label">データ管理</div>
       <div class="settings-row" onclick="exportData()"><span class="settings-row-label">JSONでエクスポート</span><span class="settings-row-val">→</span></div>
       <div class="settings-row" onclick="importData()"><span class="settings-row-label">JSONをインポート</span><span class="settings-row-val">→</span></div>
+      <div class="settings-row" onclick="exportICS()"><span class="settings-row-label">カレンダーに追加（ICS）</span><span class="settings-row-val">→</span></div>
       <div class="settings-row" onclick="resetData()"><span class="settings-row-label danger">データをリセット</span><span class="settings-row-val">→</span></div>
     </div>
 
     <div class="settings-section">
       <div class="settings-group-label">アプリ情報</div>
-      <div class="settings-row"><span class="settings-row-label">バージョン</span><span class="settings-row-val">1.2.0</span></div>
+      <div class="settings-row"><span class="settings-row-label">バージョン</span><span class="settings-row-val">2.0.0</span></div>
       <div class="settings-row"><span class="settings-row-label">対象</span><span class="settings-row-val">鶴岡工業高等専門学校</span></div>
     </div>
 
@@ -802,6 +902,19 @@
   </button>
 </nav>
 
+<!-- Attendance Settings Modal -->
+<div class="modal-overlay" id="attendSettingsOverlay" onclick="if(event.target===this)closeAttendSettings()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-heading">出席上限の設定</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">科目ごとに欠席できる上限回数を設定します</div>
+    <div id="attendSettingsList"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeAttendSettings()">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <!-- Task Modal -->
 <div class="modal-overlay" id="taskModalOverlay" onclick="if(event.target===this)closeTaskModal()">
   <div class="modal">
@@ -827,21 +940,6 @@
       <button class="btn btn-secondary" onclick="closeTaskModal()">キャンセル</button>
       <button class="btn btn-primary" onclick="saveTask()">保存</button>
       <button class="btn btn-danger" id="taskDeleteBtn" onclick="deleteTask()" style="display:none">削除</button>
-    </div>
-  </div>
-</div>
-
-<!-- QR Modal -->
-<div class="modal-overlay" id="qrModalOverlay" onclick="if(event.target===this)closeQrModal()">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-heading">時間割を共有</div>
-    <div class="qr-wrap">
-      <canvas id="qrCanvas"></canvas>
-      <div class="qr-note">このQRコードを相手に読み取ってもらうと<br>時間割データをインポートできます</div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeQrModal()">閉じる</button>
     </div>
   </div>
 </div>
@@ -1005,7 +1103,7 @@ const PERIODS = [
   { n:4, t:'14:30\n16:00',start:[14,30], end:[16,0]  },
 ];
 
-let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{}, className:'', weekOffset:0, ovWeekOffset:0, ovShowBase:false, wkend:{}, tasks:[] };
+let S = { week:'A', day:0, page:'timetable', tt:{}, ov:{}, weekMap:{}, dayMap:{}, className:'', weekOffset:0, ovWeekOffset:0, ovShowBase:false, wkend:{}, tasks:[], attend:{} };
 let modalDay=0, modalPeriod=0, selWeek='both', selStatus='normal';
 let calYear=0, calMonth=0;
 let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConfigHideTT=false;
@@ -1014,11 +1112,11 @@ let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConf
 function load(){
   try {
     const d=JSON.parse(localStorage.getItem('tt-v4')||'{}');
-    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{}; S.className=d.className||''; S.wkend=d.wkend||{}; S.tasks=d.tasks||[];
+    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{}; S.className=d.className||''; S.wkend=d.wkend||{}; S.tasks=d.tasks||[]; S.attend=d.attend||{};
   } catch(e){}
 }
 function save(){
-  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap,className:S.className,wkend:S.wkend,tasks:S.tasks}));
+  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap,className:S.className,wkend:S.wkend,tasks:S.tasks,attend:S.attend}));
 }
 
 // ── Keys ──
@@ -1401,7 +1499,104 @@ function jumpToSlot(di,p){
   setTimeout(()=>openModal(di-1,p),120);
 }
 
-// ── Tasks ──
+// ── Sub-tab (Tasks / Attendance) ──
+let _subTab='task';
+function setSubTab(t){
+  _subTab=t;
+  document.getElementById('tabTask').classList.toggle('active',t==='task');
+  document.getElementById('tabAttend').classList.toggle('active',t==='attend');
+  document.getElementById('sectionTask').style.display=t==='task'?'':'none';
+  document.getElementById('sectionAttend').style.display=t==='attend'?'':'none';
+  if(t==='attend') renderAttend();
+}
+
+// ── Attendance ──
+// S.attend = { [subject]: { absent: number, limit: number } }
+
+function ensureAttend(){
+  if(!S.attend) S.attend={};
+  allSubjects().forEach(s=>{ if(!S.attend[s]) S.attend[s]={absent:0,limit:5}; });
+}
+
+function changeAbsent(subject, delta){
+  ensureAttend();
+  S.attend[subject].absent=Math.max(0,(S.attend[subject].absent||0)+delta);
+  save(); renderAttend();
+}
+
+function renderAttend(){
+  const container=document.getElementById('attendList');
+  if(!container) return;
+  ensureAttend();
+  const subjects=allSubjects();
+  if(subjects.length===0){
+    container.innerHTML='<div class="task-empty">科目が登録されていません</div>';
+    return;
+  }
+  container.innerHTML='';
+  subjects.forEach(subj=>{
+    const a=S.attend[subj]||{absent:0,limit:5};
+    const absent=a.absent||0;
+    const limit=a.limit||5;
+    const remaining=Math.max(0,limit-absent);
+    const pct=limit>0?Math.min(100,Math.round(absent/limit*100)):0;
+
+    let cardCls='attend-card', statusCls='attend-status ok', statusTxt=`あと${remaining}回`;
+    if(absent>=limit){ cardCls+=' danger'; statusCls='attend-status danger'; statusTxt='アウト ⚠'; }
+    else if(remaining<=2){ cardCls+=' warning'; statusCls='attend-status warn'; statusTxt=`残${remaining}回`; }
+
+    const card=document.createElement('div');
+    card.className=cardCls;
+    card.innerHTML=`
+      <div class="attend-top">
+        <div class="attend-subject">${subj}</div>
+        <div class="${statusCls}">${statusTxt}</div>
+      </div>
+      <div class="attend-bar-wrap"><div class="attend-bar" style="width:${pct}%"></div></div>
+      <div class="attend-counts">
+        <div class="attend-nums">欠席 <strong>${absent}</strong> / 上限 <strong>${limit}</strong> 回</div>
+        <div class="attend-btns">
+          <button class="attend-btn minus" onclick="changeAbsent('${subj}',-1)">－</button>
+          <button class="attend-btn plus"  onclick="changeAbsent('${subj}',+1)">＋</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function openAttendSettingsModal(){
+  ensureAttend();
+  const list=document.getElementById('attendSettingsList');
+  list.innerHTML='';
+  allSubjects().forEach(subj=>{
+    const a=S.attend[subj]||{absent:0,limit:5};
+    const row=document.createElement('div');
+    row.className='attend-setting-row';
+    row.innerHTML=`
+      <div class="attend-setting-label">${subj}</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)">
+        上限
+        <input type="number" class="attend-setting-input" min="1" max="99"
+          value="${a.limit||5}"
+          onchange="setAttendLimit('${subj}',this.value)">
+        回
+      </div>
+    `;
+    list.appendChild(row);
+  });
+  document.getElementById('attendSettingsOverlay').classList.add('open');
+}
+function closeAttendSettings(){
+  document.getElementById('attendSettingsOverlay').classList.remove('open');
+  renderAttend();
+}
+function setAttendLimit(subj, val){
+  ensureAttend();
+  const n=parseInt(val);
+  if(n>0) S.attend[subj].limit=n;
+  save();
+}
 let _taskIdx=-1, _taskFilter='all';
 
 function allSubjects(){
@@ -1526,33 +1721,169 @@ function renderTasks(){
   });
 }
 
-// ── QR Share ──
-function openQrModal(){
-  const data=JSON.stringify({tt:S.tt,className:S.className,weekMap:S.weekMap,dayMap:S.dayMap});
-  const canvas=document.getElementById('qrCanvas');
-  canvas.width=0; canvas.height=0;
-  // QRCode.js を使用
-  const wrap=document.createElement('div');
-  new QRCode(wrap,{
-    text: data,
-    width: 240, height: 240,
-    colorDark: '#000', colorLight: '#fff',
-    correctLevel: QRCode.CorrectLevel.M
-  });
-  setTimeout(()=>{
-    const img=wrap.querySelector('img')||wrap.querySelector('canvas');
-    const ctx=canvas.getContext('2d');
-    const size=240;
-    canvas.width=size; canvas.height=size;
-    if(img.tagName==='IMG'){
-      const i=new Image(); i.onload=()=>ctx.drawImage(i,0,0,size,size); i.src=img.src;
-    } else {
-      ctx.drawImage(img,0,0,size,size);
+// ── Splash Screen ──
+function buildSplash(){
+  const now=new Date(), dow=now.getDay();
+  const hm=now.getHours()*60+now.getMinutes();
+  const h=now.getHours();
+  const greet=h<11?'おはようございます':h<17?'こんにちは':'こんばんは';
+  document.getElementById('splashGreeting').textContent=greet+(S.className?`、${S.className}`:'');
+  const days=['日','月','火','水','木','金','土'];
+  document.getElementById('splashDate').textContent=`${now.getMonth()+1}月${now.getDate()}日（${days[dow]}）`;
+  document.getElementById('splashDateSub').textContent=`${now.getFullYear()}年 ${S.week}週`;
+  const nowWrap=document.getElementById('splashNowWrap');
+  const upList=document.getElementById('splashUpcomingList');
+  const upLabel=document.getElementById('splashUpcomingLabel');
+  nowWrap.innerHTML=''; upList.innerHTML='';
+  if(dow<1||dow>5){
+    upLabel.textContent='今日は休日です';
+    upList.innerHTML=`<div class="splash-empty"><div class="splash-empty-icon">🌅</div><div class="splash-empty-msg">ゆっくり休んでください</div></div>`;
+    return;
+  }
+  const di=dow;
+  const todayDt=dateOfDay(di);
+  const ds=dateStr(todayDt);
+  const cfg=S.dayMap[ds];
+  if(cfg&&cfg.hideTT){
+    upLabel.textContent=cfg.label||'特別日程';
+    upList.innerHTML=`<div class="splash-empty"><div class="splash-empty-icon">📋</div><div class="splash-empty-msg">${cfg.label||'特別日程'}</div></div>`;
+    return;
+  }
+  let nowShown=false;
+  const upcoming=[];
+  for(let pi=0;pi<PERIODS.length;pi++){
+    const p=PERIODS[pi];
+    const startMin=p.start[0]*60+p.start[1];
+    const endMin=p.end[0]*60+p.end[1];
+    const entry=getEntryForDate(di,pi,todayDt);
+    const ov=S.ov[`${ds}-${pi}`];
+    if(!entry||(ov&&ov.status==='cancel')) continue;
+    if(hm>=startMin&&hm<endMin&&!nowShown){
+      const pct=Math.round((hm-startMin)/(endMin-startMin)*100);
+      nowWrap.innerHTML=`
+        <div class="splash-now-label">📍 授業中</div>
+        <div class="splash-now-card">
+          <div class="sn-label">${p.n}限 ${p.start[0]}:${String(p.start[1]).padStart(2,'0')}〜${p.end[0]}:${String(p.end[1]).padStart(2,'0')}</div>
+          <div class="sn-subject">${entry.subject}</div>
+          <div class="sn-meta">${[entry.teacher,entry.room].filter(Boolean).join(' · ')} · 残${endMin-hm}分</div>
+          <div class="sn-bar-wrap"><div class="sn-bar" style="width:${pct}%"></div></div>
+        </div>`;
+      nowShown=true;
+    } else if(hm<startMin){
+      upcoming.push({p,entry,startMin});
     }
-  },100);
-  document.getElementById('qrModalOverlay').classList.add('open');
+  }
+  if(!nowShown&&upcoming.length===0){
+    upLabel.textContent='今日の授業は終わりました';
+    upList.innerHTML=`<div class="splash-empty"><div class="splash-empty-icon">✅</div><div class="splash-empty-msg">お疲れ様でした</div></div>`;
+    return;
+  }
+  if(upcoming.length===0){ upLabel.style.display='none'; return; }
+  upLabel.textContent=nowShown?'この後の授業':'今日の授業';
+  upcoming.forEach(function(item){
+    const p=item.p, entry=item.entry, startMin=item.startMin;
+    const diff=startMin-hm;
+    const timeStr=`${p.start[0]}:${String(p.start[1]).padStart(2,'0')}〜${p.end[0]}:${String(p.end[1]).padStart(2,'0')}`;
+    const el=document.createElement('div');
+    el.className='splash-upcoming-item';
+    el.innerHTML=`
+      <div class="sui-period">${p.n}</div>
+      <div class="sui-body">
+        <div class="sui-subject">${entry.subject}</div>
+        <div class="sui-time">${timeStr}${diff<=60?' · <span style="color:var(--accent)">'+diff+'分後</span>':''}</div>
+        ${entry.room?`<div class="sui-room">${entry.room}</div>`:''}
+      </div>`;
+    upList.appendChild(el);
+  });
 }
-function closeQrModal(){ document.getElementById('qrModalOverlay').classList.remove('open'); }
+function dismissSplash(){
+  document.getElementById('splash').classList.add('hidden');
+  setTimeout(function(){ document.getElementById('splash').style.display='none'; },520);
+}
+
+// ── ICS Export ──
+function fmtICSDate(date,hh,mm){
+  const y=date.getFullYear();
+  const mo=String(date.getMonth()+1).padStart(2,'0');
+  const d=String(date.getDate()).padStart(2,'0');
+  return `${y}${mo}${d}T${String(hh).padStart(2,'0')}${String(mm).padStart(2,'0')}00`;
+}
+function exportICS(){
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//鶴岡高専時間割//JP','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  const rruleDays=['MO','TU','WE','TH','FR'];
+  const base=new Date(); base.setHours(0,0,0,0);
+  const bd=base.getDay();
+  base.setDate(base.getDate()+(bd===0?1:8-bd));
+  for(let ttDi=0;ttDi<5;ttDi++){
+    const byday=rruleDays[ttDi];
+    for(let pi=0;pi<PERIODS.length;pi++){
+      const p=PERIODS[pi];
+      ['A','B','both'].forEach(function(wt){
+        const entry=S.tt[ttKey(ttDi,pi,wt)];
+        if(!entry) return;
+        const startDt=new Date(base); startDt.setDate(base.getDate()+ttDi);
+        const dtstart=fmtICSDate(startDt,p.start[0],p.start[1]);
+        const dtend=fmtICSDate(startDt,p.end[0],p.end[1]);
+        const interval=wt==='both'?'FREQ=WEEKLY':'FREQ=WEEKLY;INTERVAL=2';
+        lines.push('BEGIN:VEVENT');
+        lines.push('UID:tt-'+ttDi+'-'+pi+'-'+wt+'-'+Date.now()+'@tsuruoka');
+        lines.push('DTSTART;TZID=Asia/Tokyo:'+dtstart);
+        lines.push('DTEND;TZID=Asia/Tokyo:'+dtend);
+        lines.push('RRULE:'+interval+';BYDAY='+byday);
+        lines.push('SUMMARY:'+entry.subject+(wt!=='both'?' ('+wt+'週)':''));
+        if(entry.teacher) lines.push('DESCRIPTION:'+entry.teacher);
+        if(entry.room)    lines.push('LOCATION:'+entry.room);
+        lines.push('END:VEVENT');
+      });
+    }
+  }
+  Object.keys(S.dayMap).forEach(function(ds){
+    const cfg=S.dayMap[ds];
+    if(!cfg.label&&!cfg.hideTT) return;
+    const dtdate=ds.replace(/-/g,'');
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:special-'+ds+'@tsuruoka');
+    lines.push('DTSTART;VALUE=DATE:'+dtdate);
+    lines.push('DTEND;VALUE=DATE:'+dtdate);
+    lines.push('SUMMARY:'+(cfg.label||'特別日程')+(cfg.hideTT?' (時間割なし)':''));
+    lines.push('END:VEVENT');
+  });
+  Object.keys(S.ov).forEach(function(key){
+    const ov=S.ov[key];
+    const parts=key.split('-');
+    const pi=parseInt(parts[parts.length-1]);
+    const ds=parts.slice(0,3).join('-');
+    if(isNaN(pi)||pi>=PERIODS.length) return;
+    const p=PERIODS[pi];
+    const d=new Date(ds);
+    const dtstart=fmtICSDate(d,p.start[0],p.start[1]);
+    const dtend=fmtICSDate(d,p.end[0],p.end[1]);
+    let summary='';
+    if(ov.status==='cancel') summary='【休講】'+p.n+'限';
+    else if(ov.status==='supp') summary='【補講】'+p.n+'限'+(ov.note?' '+ov.note:'');
+    else if(ov.status==='change') summary='【変更】'+p.n+'限 → '+(ov.changeSubject||'');
+    if(!summary) return;
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:ov-'+key+'@tsuruoka');
+    lines.push('DTSTART;TZID=Asia/Tokyo:'+dtstart);
+    lines.push('DTEND;TZID=Asia/Tokyo:'+dtend);
+    lines.push('SUMMARY:'+summary);
+    if(ov.note) lines.push('DESCRIPTION:'+ov.note);
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  const ics=lines.join('\r\n');
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  const fname='tsuruoka'+(S.className?'-'+S.className:'')+'.ics';
+  const file=new File([blob],fname,{type:'text/calendar'});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:'時間割カレンダー'}).catch(function(e){ if(e.name!=='AbortError') showToast('キャンセルしました'); });
+  } else {
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+    showToast('ICSファイルを保存しました ✓');
+  }
+}
+
 async function saveImage(){
   showToast('画像を生成中…');
   try {
@@ -1757,7 +2088,7 @@ function showPage(p){
   document.getElementById('weekToggle').classList.toggle('hidden', !(p==='overview' && S.ovShowBase));
   if(p==='timetable') renderTimetable();
   if(p==='overview'){ renderOverview(); updateOvWeekNav(); }
-  if(p==='tasks') renderTasks();
+  if(p==='tasks'){ if(_subTab==='attend') renderAttend(); else renderTasks(); }
   if(p==='settings') requestAnimationFrame(function(){ renderCalendar(); renderNotifBtn(); });
 }
 
@@ -1955,9 +2286,15 @@ function exportData(){
   const defaultName=S.className?`tsuruoka-${S.className}`:'tsuruoka-timetable';
   const name=(prompt('保存ファイル名を入力（拡張子なし）',defaultName)||'').trim();
   if(!name) return;
-  const blob=new Blob([JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,dayMap:S.dayMap,className:S.className,wkend:S.wkend},null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=name+'.json'; a.click();
+  const blob=new Blob([JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,dayMap:S.dayMap,className:S.className,wkend:S.wkend,tasks:S.tasks,attend:S.attend},null,2)],{type:'application/json'});
+  const file=new File([blob],name+'.json',{type:'application/json'});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:'時間割データ'}).catch(e=>{ if(e.name!=='AbortError') showToast('共有をキャンセルしました'); });
+  } else {
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=name+'.json'; a.click();
+    showToast('保存しました ✓');
+  }
 }
 function importData(){
   const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
@@ -2039,6 +2376,9 @@ function renderNotifBtn(){
 
 document.addEventListener('DOMContentLoaded', function(){
   load(); initCal(); setupDates(); setWeek(S.week);
+  // splash
+  buildSplash();
+  setTimeout(dismissSplash, 5000);
   document.getElementById('dayTabs').classList.remove('hidden');
   // weekNav と weekToggle は showPage が制御するので init では触らない
   // init class name
