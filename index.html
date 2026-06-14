@@ -824,7 +824,7 @@
 
     <!-- 出席セクション -->
     <div id="sectionAttend" style="display:none">
-      <button class="task-add-fab" style="background:var(--bg2);color:var(--accent);border:1px solid var(--accent)" onclick="openAttendSettingsModal()">⚙ 科目ごとの上限を設定</button>
+      <button class="task-add-fab" style="background:var(--bg2);color:var(--accent);border:1px solid var(--accent)" onclick="openAttendSettingsModal()">⚙ 授業週数・上限を設定</button>
       <div id="attendList"></div>
     </div>
   </div>
@@ -913,8 +913,17 @@
 <div class="modal-overlay" id="attendSettingsOverlay" onclick="if(event.target===this)closeAttendSettings()">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-heading">出席上限の設定</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">科目ごとに欠席できる上限回数を設定します</div>
+    <div class="modal-heading">出席設定</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:4px">授業週数（前期・後期それぞれ）</div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+      <span style="font-size:12px;color:var(--text2);white-space:nowrap">前期</span>
+      <input type="number" id="attendWeeksFirst" min="1" max="30" style="width:52px;text-align:center;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:5px 6px;font-size:14px;color:var(--text);font-family:'IBM Plex Mono',monospace" onchange="saveAttendWeeks()">
+      <span style="font-size:12px;color:var(--text3)">週</span>
+      <span style="font-size:12px;color:var(--text2);white-space:nowrap;margin-left:6px">後期</span>
+      <input type="number" id="attendWeeksSecond" min="1" max="30" style="width:52px;text-align:center;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:5px 6px;font-size:14px;color:var(--text);font-family:'IBM Plex Mono',monospace" onchange="saveAttendWeeks()">
+      <span style="font-size:12px;color:var(--text3)">週</span>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">科目ごとの設定</div>
     <div id="attendSettingsList"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeAttendSettings()">閉じる</button>
@@ -1119,11 +1128,11 @@ let _dayConfigDs=null, _dayConfigSelSub='none', _dayConfigSelWeek=null, _dayConf
 function load(){
   try {
     const d=JSON.parse(localStorage.getItem('tt-v4')||'{}');
-    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{}; S.className=d.className||''; S.wkend=d.wkend||{}; S.tasks=d.tasks||[]; S.attend=d.attend||{};
+    S.tt=d.tt||{}; S.ov=d.ov||{}; S.weekMap=d.weekMap||{}; S.week=d.week||'A'; S.dayMap=d.dayMap||{}; S.className=d.className||''; S.wkend=d.wkend||{}; S.tasks=d.tasks||[]; S.attend=d.attend||{}; S.attendWeeks=d.attendWeeks||{first:15,second:15};
   } catch(e){}
 }
 function save(){
-  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap,className:S.className,wkend:S.wkend,tasks:S.tasks,attend:S.attend}));
+  localStorage.setItem('tt-v4',JSON.stringify({tt:S.tt,ov:S.ov,weekMap:S.weekMap,week:S.week,dayMap:S.dayMap,className:S.className,wkend:S.wkend,tasks:S.tasks,attend:S.attend,attendWeeks:S.attendWeeks}));
 }
 
 // ── Keys ──
@@ -1518,11 +1527,51 @@ function setSubTab(t){
 }
 
 // ── Attendance ──
-// S.attend = { [subject]: { absent: number, limit: number } }
+// S.attend = { [subject]: { absent, term('full'|'first'|'second'), limitOverride } }
+// S.attendWeeks = { first: number, second: number }
+
+function getAttendWeeks(){
+  const w = S.attendWeeks || {};
+  return { first: w.first||15, second: w.second||15 };
+}
+
+// 科目のweekType（both=2/week, A or B=1/week）を時間割から取得
+function subjectWeeklyCount(subj){
+  // bothなら週2コマ、A/Bどちらかなら週1コマ
+  let hasBoth=false, hasAB=false;
+  Object.values(S.tt).forEach(e=>{
+    if(!e||e.subject!==subj) return;
+    if(e.weekType==='both') hasBoth=true;
+    else hasAB=true;
+  });
+  // bothが1つでもあれば週2、なければ週1
+  return hasBoth ? 2 : 1;
+}
+
+// 総授業数を計算
+function calcTotalLessons(subj){
+  const w=getAttendWeeks();
+  const weekly=subjectWeeklyCount(subj);
+  const a=S.attend[subj]||{};
+  const term=a.term||'full';
+  let weeks=0;
+  if(term==='full')   weeks=w.first+w.second;
+  if(term==='first')  weeks=w.first;
+  if(term==='second') weeks=w.second;
+  return weeks*weekly;
+}
+
+// 欠席上限（総授業数/4 切り捨て、手動上書きがあればそちら優先）
+function calcAbsentLimit(subj){
+  const a=S.attend[subj]||{};
+  if(a.limitOverride!=null) return a.limitOverride;
+  const total=calcTotalLessons(subj);
+  return Math.floor(total/4);
+}
 
 function ensureAttend(){
   if(!S.attend) S.attend={};
-  allSubjects().forEach(s=>{ if(!S.attend[s]) S.attend[s]={absent:0,limit:5}; });
+  allSubjects().forEach(s=>{ if(!S.attend[s]) S.attend[s]={absent:0,term:'full'}; });
 }
 
 function changeAbsent(subject, delta){
@@ -1542,58 +1591,136 @@ function renderAttend(){
   }
   container.innerHTML='';
   subjects.forEach(subj=>{
-    const a=S.attend[subj]||{absent:0,limit:5};
+    const a=S.attend[subj]||{absent:0,term:'full'};
     const absent=a.absent||0;
-    const limit=a.limit||5;
+    const limit=calcAbsentLimit(subj);
+    const total=calcTotalLessons(subj);
     const remaining=Math.max(0,limit-absent);
     const pct=limit>0?Math.min(100,Math.round(absent/limit*100)):0;
+    const termLabel={full:'通年',first:'前期',second:'後期'}[a.term||'full'];
+    const weekly=subjectWeeklyCount(subj);
+    const weeklyLabel=weekly===2?'週2':'週1（隔週）';
 
     let cardCls='attend-card', statusCls='attend-status ok', statusTxt=`あと${remaining}回`;
-    if(absent>=limit){ cardCls+=' danger'; statusCls='attend-status danger'; statusTxt='アウト ⚠'; }
-    else if(remaining<=2){ cardCls+=' warning'; statusCls='attend-status warn'; statusTxt=`残${remaining}回`; }
+    if(limit>0&&absent>=limit){ cardCls+=' danger'; statusCls='attend-status danger'; statusTxt='アウト ⚠'; }
+    else if(remaining<=2&&limit>0){ cardCls+=' warning'; statusCls='attend-status warn'; statusTxt=`残${remaining}回`; }
 
     const card=document.createElement('div');
     card.className=cardCls;
+    const escapedSubj=subj.replace(/'/g,"\\'");
     card.innerHTML=`
       <div class="attend-top">
-        <div class="attend-subject">${subj}</div>
+        <div class="attend-subject" onclick="openAttendSettingsModal('${escapedSubj}')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px">${subj} ⚙</div>
         <div class="${statusCls}">${statusTxt}</div>
       </div>
       <div class="attend-bar-wrap"><div class="attend-bar" style="width:${pct}%"></div></div>
       <div class="attend-counts">
-        <div class="attend-nums">欠席 <strong>${absent}</strong> / 上限 <strong>${limit}</strong> 回</div>
-        <div class="attend-btns">
-          <button class="attend-btn minus" onclick="changeAbsent('${subj}',-1)">－</button>
-          <button class="attend-btn plus"  onclick="changeAbsent('${subj}',+1)">＋</button>
+        <div class="attend-nums">
+          欠席 <strong>${absent}</strong> / 上限 <strong>${limit}</strong> 回
+          <span style="font-size:10px;color:var(--text3);margin-left:6px">（総${total}回の1/4）</span>
         </div>
+        <div class="attend-btns">
+          <button class="attend-btn minus" onclick="changeAbsent('${escapedSubj}',-1)">－</button>
+          <button class="attend-btn plus"  onclick="changeAbsent('${escapedSubj}',+1)">＋</button>
+        </div>
+      </div>
+      <div style="margin-top:6px;font-size:11px;color:var(--text3);display:flex;gap:8px">
+        <span>📅 ${termLabel}</span><span>🔄 ${weeklyLabel}</span>
+        ${a.limitOverride!=null?'<span style="color:var(--change)">上限: 手動設定</span>':''}
       </div>
     `;
     container.appendChild(card);
   });
 }
 
-function openAttendSettingsModal(){
+function saveAttendWeeks(){
+  const f=parseInt(document.getElementById('attendWeeksFirst').value)||15;
+  const s=parseInt(document.getElementById('attendWeeksSecond').value)||15;
+  S.attendWeeks={first:Math.max(1,f), second:Math.max(1,s)};
+  save();
+  // re-render list inside modal
+  _renderAttendSettingsList();
+  renderAttend();
+}
+
+let _attendSettingsSubj=null;
+
+function openAttendSettingsModal(subj){
   ensureAttend();
+  const w=getAttendWeeks();
+  document.getElementById('attendWeeksFirst').value=w.first;
+  document.getElementById('attendWeeksSecond').value=w.second;
+  _attendSettingsSubj=subj||null;
+  _renderAttendSettingsList();
+  document.getElementById('attendSettingsOverlay').classList.add('open');
+}
+
+function _renderAttendSettingsList(){
   const list=document.getElementById('attendSettingsList');
   list.innerHTML='';
   allSubjects().forEach(subj=>{
-    const a=S.attend[subj]||{absent:0,limit:5};
-    const row=document.createElement('div');
-    row.className='attend-setting-row';
-    row.innerHTML=`
-      <div class="attend-setting-label">${subj}</div>
-      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)">
-        上限
-        <input type="number" class="attend-setting-input" min="1" max="99"
-          value="${a.limit||5}"
-          onchange="setAttendLimit('${subj}',this.value)">
-        回
+    const a=S.attend[subj]||{absent:0,term:'full'};
+    const term=a.term||'full';
+    const total=calcTotalLessons(subj);
+    const autoLimit=Math.floor(total/4);
+    const hasOverride=a.limitOverride!=null;
+
+    const block=document.createElement('div');
+    block.style.cssText='border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:10px;background:var(--bg3)';
+    block.innerHTML=`
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">${subj}</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+        ${['full','first','second'].map(t=>{
+          const lbl={full:'通年',first:'前期のみ',second:'後期のみ'}[t];
+          const active=term===t;
+          return `<button onclick="setAttendTerm('${subj}','${t}')"
+            style="padding:4px 12px;border-radius:8px;border:1px solid ${active?'var(--accent)':'var(--border)'};
+            background:${active?'var(--accent)':'transparent'};color:${active?'#fff':'var(--text2)'};
+            font-size:12px;font-weight:700;cursor:pointer">${lbl}</button>`;
+        }).join('')}
       </div>
+      <div style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span>総授業数 <strong style="color:var(--text)">${total}回</strong> → 上限 <strong style="color:var(--accent)">${autoLimit}回</strong></span>
+        <button onclick="toggleLimitOverride('${subj}')"
+          style="margin-left:auto;padding:3px 10px;border-radius:8px;border:1px solid var(--border);
+          background:transparent;color:var(--text3);font-size:11px;cursor:pointer">
+          ${hasOverride?'自動に戻す':'手動で上書き'}
+        </button>
+      </div>
+      ${hasOverride?`
+      <div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:var(--text2)">
+        上限を手動設定:
+        <input type="number" min="1" max="999" value="${a.limitOverride}"
+          style="width:56px;text-align:center;background:var(--bg2);border:1px solid var(--border);
+          border-radius:8px;padding:4px 6px;font-size:14px;color:var(--text);font-family:'IBM Plex Mono',monospace"
+          onchange="setLimitOverride('${subj}',this.value)">
+        回
+      </div>`:''}
     `;
-    list.appendChild(row);
+    list.appendChild(block);
   });
-  document.getElementById('attendSettingsOverlay').classList.add('open');
 }
+
+function setAttendTerm(subj, term){
+  ensureAttend();
+  S.attend[subj].term=term;
+  save(); _renderAttendSettingsList(); renderAttend();
+}
+
+function toggleLimitOverride(subj){
+  ensureAttend();
+  const a=S.attend[subj];
+  if(a.limitOverride!=null){ delete a.limitOverride; }
+  else { a.limitOverride=Math.floor(calcTotalLessons(subj)/4); }
+  save(); _renderAttendSettingsList(); renderAttend();
+}
+
+function setLimitOverride(subj, val){
+  ensureAttend();
+  const n=parseInt(val);
+  if(n>0){ S.attend[subj].limitOverride=n; save(); renderAttend(); }
+}
+
 function closeAttendSettings(){
   document.getElementById('attendSettingsOverlay').classList.remove('open');
   renderAttend();
@@ -1601,7 +1728,7 @@ function closeAttendSettings(){
 function setAttendLimit(subj, val){
   ensureAttend();
   const n=parseInt(val);
-  if(n>0) S.attend[subj].limit=n;
+  if(n>0) S.attend[subj].limitOverride=n;
   save();
 }
 let _taskIdx=-1, _taskFilter='all';
@@ -2027,7 +2154,9 @@ function saveEntry(){
 function deleteEntry(){
   if(!confirm('この授業を削除しますか？')) return;
   ['both','A','B'].forEach(w=>delete S.tt[ttKey(modalDay,modalPeriod,w)]);
-  delete S.ov[`${dateStr(dateOfDay(modalDay))}-${modalPeriod}`];
+  // Use the date from the override date input, not dateOfDay (which always returns this week)
+  const ovDate=document.getElementById('inputOverrideDate').value;
+  if(ovDate) delete S.ov[`${ovDate}-${modalPeriod}`];
   save(); closeModal(); renderTimetable(); renderOverview();
   showToast('削除しました');
 }
@@ -2269,6 +2398,7 @@ function expireOldOverrides(){
     // parts = ["YYYY","MM","DD","pi"]
     if(parts.length >= 4){
       var datePartStr = parts[0]+'-'+parts[1]+'-'+parts[2];
+      // Only delete dates strictly before today (not today itself)
       if(datePartStr < todayStr){
         delete S.ov[key];
       }
